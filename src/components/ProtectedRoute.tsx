@@ -1,11 +1,8 @@
-// src/components/ProtectedRoute.tsx
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth, db } from "@/utils/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProtectedRoute({
   role,
@@ -14,48 +11,23 @@ export default function ProtectedRoute({
   role: "admin" | "sub-admin";
   children: React.ReactNode;
 }) {
-  const [authorized, setAuthorized] = useState(false);
+  const { user } = useAuth();
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        router.push("/login");
-        return;
-      }
+    if (user === undefined) return; // wait for auth load
 
-      const ref = doc(db, "admins", user.uid);
-      const snap = await getDoc(ref);
-      const data = snap.data();
+    if (!user) {
+      router.push("/login"); // not logged in
+    } else if (user.role !== role) {
+      router.push("/login"); // wrong role
+    } else {
+      setIsChecking(false); // success
+    }
+  }, [user, role, router]);
 
-      if (!data) {
-        // 🔄 Try users collection
-        const fallbackRef = doc(db, "users", user.uid);
-        const fallbackSnap = await getDoc(fallbackRef);
-        const fallbackData = fallbackSnap.data();
+  if (isChecking) return null; // don't render anything until auth is checked
 
-        if (fallbackData?.role === role) {
-          setAuthorized(true);
-          return;
-        } else {
-          alert("Unauthorized role");
-          router.push("/login");
-          return;
-        }
-      }
-
-      const isMain = data.isMain;
-
-      if ((role === "admin" && isMain) || (role === "sub-admin" && !isMain)) {
-        setAuthorized(true);
-      } else {
-        alert("Unauthorized role");
-        router.push("/login");
-      }
-    });
-
-    return () => unsubscribe();
-  }, [role, router]);
-
-  return authorized ? <>{children}</> : null;
+  return <>{children}</>;
 }
