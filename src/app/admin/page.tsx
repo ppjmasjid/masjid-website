@@ -5,6 +5,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useEffect, useState } from 'react';
 import { auth, db, app } from '@/utils/firestore'; // keep this as is
 import { onAuthStateChanged } from "firebase/auth";
+ 
+import { useAuth } from "@/contexts/AuthContext";
+
 import {
   createUserWithEmailAndPassword
 } from 'firebase/auth';
@@ -26,27 +29,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
 
-  const router = useRouter();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.replace("/login");
-      } else {
-        setAuthenticated(true);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
-  if (loading) return <div className="text-center mt-10">Loading...</div>;
-  if (!authenticated) return null;
-
-
-
-
+ 
+ 
 
 
 
@@ -144,6 +128,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4 md:p-8">
+     
       <div className="max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-10 text-gray-800">
           🛡️ Main Admin Panel

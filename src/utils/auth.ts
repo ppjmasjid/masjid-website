@@ -1,22 +1,11 @@
-import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import {app }from "@/utils/firestore";
+import { getDoc, doc } from "firebase/firestore";
+import { db } from "./firestore";
 
-const auth = getAuth(app);
-
-export const login = async (email: string, password: string) => {
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    return true;
-  } catch (error) {
-    console.error("Login error:", error);
-    return false;
+export const getSubAdminByUsername = async (username: string) => {
+  const ref = doc(db, "subadmins", username);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    return { id: username, ...snap.data() };
   }
-};
-
-export const logout = async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error("Logout error:", error);
-  }
+  return null;
 };
