@@ -1,32 +1,61 @@
 // src/components/ProtectedRoute.tsx
 "use client";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "@/utils/firestore";
-import { doc, getDoc } from "firebase/firestore";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
-export default function ProtectedRoute({ children, role }: { children: React.ReactNode; role: string }) {
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { auth, db } from "@/utils/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+
+export default function ProtectedRoute({
+  role,
+  children,
+}: {
+  role: "admin" | "sub-admin";
+  children: React.ReactNode;
+}) {
+  const [authorized, setAuthorized] = useState(false);
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push("/login");
-      } else {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        const userData = userDoc.data();
-        if (userData?.role !== role) {
-          router.push("/login");
+        return;
+      }
+
+      const ref = doc(db, "admins", user.uid);
+      const snap = await getDoc(ref);
+      const data = snap.data();
+
+      if (!data) {
+        // 🔄 Try users collection
+        const fallbackRef = doc(db, "users", user.uid);
+        const fallbackSnap = await getDoc(fallbackRef);
+        const fallbackData = fallbackSnap.data();
+
+        if (fallbackData?.role === role) {
+          setAuthorized(true);
+          return;
         } else {
-          setLoading(false);
+          alert("Unauthorized role");
+          router.push("/login");
+          return;
         }
       }
-    });
-    return () => unsubscribe();
-  }, []);
 
-  if (loading) return <div>Loading...</div>;
-  return <>{children}</>;
+      const isMain = data.isMain;
+
+      if ((role === "admin" && isMain) || (role === "sub-admin" && !isMain)) {
+        setAuthorized(true);
+      } else {
+        alert("Unauthorized role");
+        router.push("/login");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [role, router]);
+
+  return authorized ? <>{children}</> : null;
 }

@@ -1,16 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import ProtectedRoute from "@/components/ProtectedRoute";
 import { useEffect, useState } from 'react';
 import { auth, db, app } from '@/utils/firestore'; // keep this as is
 import { onAuthStateChanged } from "firebase/auth";
- 
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from "@/contexts/AuthContext";
 
-import {
-  createUserWithEmailAndPassword
-} from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import {
   collection,
   addDoc,
@@ -26,40 +23,14 @@ export default function AdminPage() {
   const [subAdmins, setSubAdmins] = useState<any[]>([]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(false);
 
- 
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
   // Money provider fields
   const [providerName, setProviderName] = useState('');
   const [providerAmount, setProviderAmount] = useState('');
   const [selectedSubAdmin, setSelectedSubAdmin] = useState('');
 
+  // Fetch sub-admins
   const fetchSubAdmins = async () => {
     const q = query(collection(db, 'admins'), where('isMain', '==', false));
     const querySnapshot = await getDocs(q);
@@ -67,6 +38,7 @@ export default function AdminPage() {
     setSubAdmins(data);
   };
 
+  // Create sub-admin and store in users & admins collections
   const handleAddSubAdmin = async () => {
     try {
       setLoading(true);
@@ -78,9 +50,14 @@ export default function AdminPage() {
         isMain: false,
       });
 
+      await setDoc(doc(db, 'users', uid), {
+        email,
+        role: 'sub-admin',
+      });
+
       setEmail('');
       setPassword('');
-      fetchSubAdmins();
+      await fetchSubAdmins();
     } catch (err) {
       alert('Failed to create sub-admin.');
     } finally {
@@ -88,15 +65,18 @@ export default function AdminPage() {
     }
   };
 
+  // Delete sub-admin
   const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'admins', id));
-      fetchSubAdmins();
+      await deleteDoc(doc(db, 'users', id)); // Optional: remove from users too
+      await fetchSubAdmins();
     } catch (err) {
       alert('Error deleting sub-admin');
     }
   };
 
+  // Assign money provider to a sub-admin
   const handleAddProvider = async () => {
     if (!providerName || !providerAmount || !selectedSubAdmin) {
       alert('Fill in all provider fields');
@@ -125,10 +105,13 @@ export default function AdminPage() {
   useEffect(() => {
     fetchSubAdmins();
   }, []);
+ 
+
 
   return (
+      
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4 md:p-8">
-     
+<ProtectedRoute role="admin" >
       <div className="max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-10 text-gray-800">
           🛡️ Main Admin Panel
@@ -226,6 +209,8 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+      </ProtectedRoute>
     </div>
+   
   );
 }

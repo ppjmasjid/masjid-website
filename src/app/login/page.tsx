@@ -1,58 +1,72 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { getSubAdminByUsername } from "@/utils/auth"; // You need to implement this
+'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/utils/firestore';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleLogin = async () => {
-    // Fixed main admin credentials
-    if (username === "admin" && password === "123456") {
-      login({ role: "admin", username });
-      router.push("/admin");
-      return;
-    }
+interface UserCredential {
+    user: {
+        uid: string;
+    };
+}
 
-    // Firebase check for sub-admin
-    const subAdmin = await getSubAdminByUsername(username);
-    if (subAdmin && subAdmin.password && subAdmin.password === password) {
-      login({ role: "subadmin", username, id: subAdmin.id });
-      router.push(`/admin/${subAdmin.id}`);
-      return;
-    }
+interface UserDocData {
+    role?: string;
+}
 
-    alert("Invalid credentials");
-  };
+const handleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault(); // Prevent page reload on form submit
+    try {
+        const userCred: UserCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCred.user;
+
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userDocData: UserDocData | undefined = userDoc.data() as UserDocData | undefined;
+        const role = userDocData?.role;
+
+        if (role === 'main-admin') {
+            router.push('/admin'); // Fixed main admin route
+        } else if (role === 'sub-admin') {
+            router.push(`/admin/${user.uid}`); // Dynamic route for sub-admin
+        } else {
+            alert('Unauthorized role');
+        }
+    } catch (error) {
+        console.error(error);
+        setError('Login failed. Check credentials.');
+    }
+};
 
   return (
-    <div className="flex flex-col items-center p-8">
-      <h1 className="text-2xl mb-4">Login</h1>
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={e => setUsername(e.target.value)}
-        className="mb-2 border p-2"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        className="mb-4 border p-2"
-      />
-      <button
-        onClick={handleLogin}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        Login
-      </button>
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <form onSubmit={handleLogin} className="bg-white p-6 shadow-md rounded-md w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4">Login</h2>
+        {error && <p className="text-red-500">{error}</p>}
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="border p-2 mb-2 w-full"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="border p-2 mb-4 w-full"
+          required
+        />
+        <button className="bg-blue-600 text-white w-full py-2 rounded" type="submit">Login</button>
+      </form>
     </div>
   );
 }
