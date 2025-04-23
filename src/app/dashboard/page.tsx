@@ -13,12 +13,18 @@ interface Provider {
   name: string;
   amount: number;
   subAdminId: string;
-  status: 'paid' | 'unpaid';
-  providedDate?: string;
+  statusByMonth: {
+    [month: number]: {
+      status: 'paid' | 'unpaid';
+      providedDate?: string;
+    };
+  };
 }
 
 export default function Dashboard() {
   const [providers, setProviders] = useState<Provider[]>([]);
+  const [subAdmins, setSubAdmins] = useState<Record<string, string>>({});
+  const [selectedMonth, setSelectedMonth] = useState<'all' | number>('all');
   const printRef = useRef<HTMLDivElement>(null);
 
   const fetchAllProviders = async () => {
@@ -27,19 +33,65 @@ export default function Dashboard() {
     setProviders(data);
   };
 
+  const fetchSubAdmins = async () => {
+    const snapshot = await getDocs(collection(db, 'users'));
+    const adminMap: Record<string, string> = {};
+    snapshot.forEach((doc) => {
+      const { name } = doc.data();
+      adminMap[doc.id] = name;
+    });
+    setSubAdmins(adminMap);
+  };
+
   useEffect(() => {
     fetchAllProviders();
+    fetchSubAdmins();
   }, []);
 
-  const totalProviders = providers.length;
-  const totalAmount = providers.reduce((sum, p) => sum + p.amount, 0);
-  const highest = providers.reduce((max, p) => (p.amount > max.amount ? p : max), { amount: 0, name: '' });
-  const subAdminCount = new Set(providers.map((p) => p.subAdminId)).size;
+  const filteredProviders = providers.filter((p) => {
+    if (selectedMonth === 'all') return true;
+    const monthData = p.statusByMonth?.[selectedMonth];
+    return monthData?.status === 'paid';
+  });
+
+  const totalAmount = filteredProviders.reduce((sum, p) => sum + p.amount, 0);
+  const totalProviders = filteredProviders.length;
+  const highest = filteredProviders.reduce(
+    (max, p) => (p.amount > max.amount ? p : max),
+    { amount: 0, name: '' }
+  );
+  const subAdminCount = new Set(filteredProviders.map((p) => p.subAdminId)).size;
+
+  const subAdminSummary = Object.entries(
+    filteredProviders.reduce((acc, p) => {
+      const name = subAdmins[p.subAdminId] || p.subAdminId;
+      acc[name] = (acc[name] || 0) + p.amount;
+      return acc;
+    }, {} as Record<string, number>)
+  ).map(([name, value]) => ({ name, value }));
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   const downloadCSV = () => {
     const csvContent = [
-      ['#', 'Name', 'Amount', 'Sub-Admin UID', 'Status', 'Provided Date'],
-      ...providers.map((p, i) => [i + 1, p.name, p.amount, p.subAdminId, p.status, p.providedDate || '-']),
+      ['Sr.', 'Name', 'Amount', 'Sub-Admin', 'Status', 'Provided Date'],
+      ...filteredProviders.map((p, i) => {
+        const monthInfo: { status?: 'paid' | 'unpaid'; providedDate?: string } = selectedMonth === 'all'
+          ? {}
+          : p.statusByMonth?.[selectedMonth] || {};
+
+        return [
+          i + 1,
+          p.name,
+          p.amount,
+          subAdmins[p.subAdminId] || p.subAdminId,
+          monthInfo?.status || '-',
+          monthInfo?.providedDate || '-',
+        ];
+      }),
     ]
       .map((e) => e.join(','))
       .join('\n');
@@ -76,17 +128,27 @@ export default function Dashboard() {
 
   const pieColors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-  const subAdminSummary = Object.entries(
-    providers.reduce((acc, p) => {
-      acc[p.subAdminId] = (acc[p.subAdminId] || 0) + p.amount;
-      return acc;
-    }, {} as Record<string, number>)
-  ).map(([subAdminId, amount]) => ({ name: subAdminId, value: amount }));
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto py-10 px-4" ref={printRef}>
         <h1 className="text-3xl font-bold mb-6">📊 Admin Dashboard</h1>
+
+        {/* Month Filter */}
+        <div className="mb-6 w-full sm:w-64">
+          <label className="block mb-1 text-sm font-medium text-gray-700">Select Month</label>
+          <select
+            className="w-full border rounded p-2"
+            value={selectedMonth}
+            onChange={(e) =>
+              setSelectedMonth(e.target.value === 'all' ? 'all' : Number(e.target.value))
+            }
+          >
+            <option value="all">All Months</option>
+            {months.map((month, idx) => (
+              <option key={idx} value={idx}>{month}</option>
+            ))}
+          </select>
+        </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10">
@@ -109,7 +171,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Charts */}
+        {/* Bar Chart */}
         <div className="bg-white p-6 rounded shadow mb-10">
           <h2 className="text-xl font-semibold mb-4">📊 Donation per Sub-Admin</h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -122,6 +184,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
+        {/* Pie Chart */}
         <div className="bg-white p-6 rounded shadow mb-10">
           <h2 className="text-xl font-semibold mb-4">🥧 Sub-Admin Share (Pie Chart)</h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -145,7 +208,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Buttons */}
+        {/* Action Buttons */}
         <div className="flex flex-wrap gap-4 mb-6">
           <button
             onClick={downloadCSV}
@@ -162,33 +225,41 @@ export default function Dashboard() {
         </div>
 
         {/* Table */}
-        <div className="bg-white p-6 rounded shadow">
+        <div className="bg-white p-6 rounded shadow overflow-auto">
           <h2 className="text-xl font-semibold mb-4">📄 All Money Providers</h2>
-          {providers.length === 0 ? (
+          {filteredProviders.length === 0 ? (
             <p className="text-gray-500">No data available.</p>
           ) : (
-            <table className="w-full border text-left">
+            <table className="w-full border text-left text-sm">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="p-2 border">#</th>
                   <th className="p-2 border">Name</th>
                   <th className="p-2 border">Amount</th>
-                  <th className="p-2 border">Sub-Admin UID</th>
+                  <th className="p-2 border">Sub-Admin</th>
                   <th className="p-2 border">Status</th>
                   <th className="p-2 border">Provided Date</th>
                 </tr>
               </thead>
               <tbody>
-                {providers.map((p, i) => (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="p-2 border">{i + 1}</td>
-                    <td className="p-2 border">{p.name}</td>
-                    <td className="p-2 border">৳ {p.amount}</td>
-                    <td className="p-2 border text-xs">{p.subAdminId}</td>
-                    <td className="p-2 border capitalize">{p.status}</td>
-                    <td className="p-2 border text-sm">{p.providedDate || '-'}</td>
-                  </tr>
-                ))}
+              {filteredProviders.map((p, i) => {
+  const monthInfo =
+    selectedMonth === 'all'
+      ? undefined
+      : p.statusByMonth?.[selectedMonth];
+
+  return (
+    <tr key={p.id} className="hover:bg-gray-50">
+      <td className="p-2 border">{i + 1}</td>
+      <td className="p-2 border">{p.name}</td>
+      <td className="p-2 border">৳ {p.amount}</td>
+      <td className="p-2 border">{subAdmins[p.subAdminId] || p.subAdminId}</td>
+      <td className="p-2 border capitalize">{monthInfo?.status || '-'}</td>
+      <td className="p-2 border">{monthInfo?.providedDate || '-'}</td>
+    </tr>
+  );
+})}
+
               </tbody>
             </table>
           )}
