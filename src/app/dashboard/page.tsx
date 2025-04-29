@@ -14,17 +14,35 @@ interface Provider {
   amount: number;
   subAdminId: string;
   statusByMonth: {
-    [month: number]: {
+    [periodKey: string]: {
       status: 'paid' | 'unpaid';
       providedDate?: string;
     };
   };
 }
 
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const generatePeriodOptions = () => {
+  const currentYear = new Date().getFullYear();
+  const years = [currentYear - 1, currentYear, currentYear + 1];
+  const options: string[] = [];
+  years.forEach((year) => {
+    months.forEach((month) => {
+      options.push(`${month}${year}`);
+    });
+  });
+  return options;
+};
+
 export default function Dashboard() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [subAdmins, setSubAdmins] = useState<Record<string, string>>({});
-  const [selectedMonth, setSelectedMonth] = useState<'all' | number>('all');
+  const [selectedPeriod, setSelectedPeriod] = useState<'all' | string>('all');
+  const [analyzeWholeYear, setAnalyzeWholeYear] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const fetchAllProviders = async () => {
@@ -48,18 +66,52 @@ export default function Dashboard() {
     fetchSubAdmins();
   }, []);
 
-  const filteredProviders = providers.filter((p) => {
-    if (selectedMonth === 'all') return true;
-    const monthData = p.statusByMonth?.[selectedMonth];
-    return monthData?.status === 'paid';
-  });
-
+  const filteredProviders = (() => {
+    if (selectedPeriod === 'all') {
+      // Flatten ALL paid entries across all months for all providers
+      return providers.flatMap((p) => {
+        return Object.entries(p.statusByMonth || {})
+          .filter(([_, val]) => val.status === 'paid')
+          .map(([monthKey, val]) => ({
+            ...p,
+            providedDate: val.providedDate || '-',
+            monthKey,
+          }));
+      });
+    }
+  
+    if (analyzeWholeYear && /^\d{4}$/.test(selectedPeriod)) {
+      const year = selectedPeriod;
+      return providers.flatMap((p) => {
+        return Object.entries(p.statusByMonth || {})
+          .filter(([key, val]) => key.endsWith(year) && val.status === 'paid')
+          .map(([monthKey, val]) => ({
+            ...p,
+            providedDate: val.providedDate || '-',
+            monthKey,
+          }));
+      });
+    }
+  
+    return providers
+      .filter((p) => p.statusByMonth?.[selectedPeriod]?.status === 'paid')
+      .map((p) => ({
+        ...p,
+        providedDate: p.statusByMonth?.[selectedPeriod]?.providedDate || '-',
+        monthKey: selectedPeriod,
+      }));
+  })();
+  
+  
   const totalAmount = filteredProviders.reduce((sum, p) => sum + p.amount, 0);
-  const totalProviders = filteredProviders.length;
+  const totalProviders = new Set(filteredProviders.map((p) => p.id)).size;
+
+  
   const highest = filteredProviders.reduce(
     (max, p) => (p.amount > max.amount ? p : max),
     { amount: 0, name: '' }
   );
+  
   const subAdminCount = new Set(filteredProviders.map((p) => p.subAdminId)).size;
 
   const subAdminSummary = Object.entries(
@@ -69,20 +121,16 @@ export default function Dashboard() {
       return acc;
     }, {} as Record<string, number>)
   ).map(([name, value]) => ({ name, value }));
-
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
+  
+  
   const downloadCSV = () => {
     const csvContent = [
       ['Sr.', 'Name', 'Amount', 'Sub-Admin', 'Status', 'Provided Date'],
       ...filteredProviders.map((p, i) => {
-        const monthInfo: { status?: 'paid' | 'unpaid'; providedDate?: string } = selectedMonth === 'all'
-          ? {}
-          : p.statusByMonth?.[selectedMonth] || {};
-
+        const monthInfo =
+          selectedPeriod === 'all' || (analyzeWholeYear && /^\d{4}$/.test(selectedPeriod))
+            ? undefined
+            : p.statusByMonth?.[selectedPeriod];
         return [
           i + 1,
           p.name,
@@ -108,17 +156,8 @@ export default function Dashboard() {
       const printWindow = window.open('', '_blank');
       if (printWindow) {
         printWindow.document.write(`
-          <html>
-            <head>
-              <title>Print Dashboard</title>
-              <style>
-                body { font-family: Arial; padding: 20px; }
-                table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; }
-                h1, h2 { margin: 10px 0; }
-              </style>
-            </head>
-            <body>${printRef.current.innerHTML}</body>
-          </html>
+          <html><head><title>Print Dashboard</title></head>
+          <body>${printRef.current.innerHTML}</body></html>
         `);
         printWindow.document.close();
         printWindow.print();
@@ -133,21 +172,30 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto py-10 px-4" ref={printRef}>
         <h1 className="text-3xl font-bold mb-6">📊 Admin Dashboard</h1>
 
-        {/* Month Filter */}
         <div className="mb-6 w-full sm:w-64">
-          <label className="block mb-1 text-sm font-medium text-gray-700">Select Month</label>
+          <label className="block mb-1 text-sm font-medium text-gray-700">Select Period</label>
           <select
             className="w-full border rounded p-2"
-            value={selectedMonth}
-            onChange={(e) =>
-              setSelectedMonth(e.target.value === 'all' ? 'all' : Number(e.target.value))
-            }
+            value={selectedPeriod}
+            onChange={(e) => setSelectedPeriod(e.target.value)}
           >
-            <option value="all">All Months</option>
-            {months.map((month, idx) => (
-              <option key={idx} value={idx}>{month}</option>
+            <option value="all">All Periods</option>
+            {generatePeriodOptions().map((period) => (
+              <option key={period} value={period}>{period}</option>
+            ))}
+            {[2024, 2025, 2026].map((year) => (
+              <option key={year} value={String(year)}>{year}</option>
             ))}
           </select>
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="analyzeYear"
+              checked={analyzeWholeYear}
+              onChange={() => setAnalyzeWholeYear(!analyzeWholeYear)}
+            />
+            <label htmlFor="analyzeYear" className="text-sm text-gray-700">Enable Full Year Analysis</label>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -242,24 +290,22 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-              {filteredProviders.map((p, i) => {
-  const monthInfo =
-    selectedMonth === 'all'
-      ? undefined
-      : p.statusByMonth?.[selectedMonth];
-
-  return (
-    <tr key={p.id} className="hover:bg-gray-50">
-      <td className="p-2 border">{i + 1}</td>
-      <td className="p-2 border">{p.name}</td>
-      <td className="p-2 border">৳ {p.amount}</td>
-      <td className="p-2 border">{subAdmins[p.subAdminId] || p.subAdminId}</td>
-      <td className="p-2 border capitalize">{monthInfo?.status || '-'}</td>
-      <td className="p-2 border">{monthInfo?.providedDate || '-'}</td>
-    </tr>
-  );
-})}
-
+                {filteredProviders.map((p, i) => {
+                  const monthInfo =
+                    selectedPeriod === 'all' || (analyzeWholeYear && /^\d{4}$/.test(selectedPeriod))
+                      ? undefined
+                      : p.statusByMonth?.[selectedPeriod];
+                  return (
+                     <tr key={`${p.id}-${i}`} className="hover:bg-gray-50">
+                      <td className="p-2 border">{i + 1}</td>
+                      <td className="p-2 border">{p.name}</td>
+                      <td className="p-2 border">৳ {p.amount}</td>
+                      <td className="p-2 border">{subAdmins[p.subAdminId] || p.subAdminId}</td>
+                      <td className="p-2 border capitalize">{monthInfo?.status || '-'}</td>
+                      <td className="p-2 border">{monthInfo?.providedDate || '-'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

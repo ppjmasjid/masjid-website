@@ -1,88 +1,75 @@
-'use client';
+"use client";
+import { useState, useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import Slideshow from "@/components/Slideshow";
+ 
+import PrayerTimes from "@/components/PrayerTime";
+import ServiceSection from "@/components/ServiceSection";
+import Footer from "@/components/Footer";
+import Calendar  from "@/components/Calendar";
+import NoticeCard  from "@/components/NoticeCard";
 
-import { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/utils/firestore';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { Amiri } from 'next/font/google';
 
-export default function CreateMainAdminPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [successMsg, setSuccessMsg] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+const amiri = Amiri({ subsets: ['arabic'], weight: '400' });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setSuccessMsg('');
-    setErrorMsg('');
 
-    try {
-      // Create user with Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = userCredential.user.uid;
 
-      // Add to Firestore with isMain = true
-      await setDoc(doc(db, 'admins', uid), {
-        isMain: true,
-        email,
-        createdAt: new Date().toISOString(),
-      });
 
-      setSuccessMsg('✅ Main admin created successfully!');
-      setEmail('');
-      setPassword('');
-    } catch (error: any) {
-      setErrorMsg(`❌ ${error.message}`);
-    }
 
-    setLoading(false);
+
+export default function Home() {
+  const [darkMode, setDarkMode] = useState(false);
+  const [navHeight, setNavHeight] = useState(0);
+
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+    if (savedMode === "true") setDarkMode(true);
+  }, []);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    localStorage.setItem("darkMode", (!darkMode).toString());
   };
 
   return (
-    <ProtectedRoute role="admin">
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="bg-white p-6 rounded shadow max-w-md w-full">
-          <h1 className="text-xl font-bold mb-4">Create New Main Admin</h1>
+    
+    <div className={`${amiri.className} ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"} min-h-screen`}>
+     
+     
+     
+      {/* Global Dark Mode Toggle */}
+      <div className="fixed top-4 right-4 z-10">
+        <button
+          onClick={toggleDarkMode}
+          className="p-2 bg-gray-600 rounded-full hover:bg-gray-700 transition"
+        >
+          {darkMode ? "🌙 Dark Mode" : "💡 Light Mode"}
+        </button>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
-              <input
-                type="email"
-                required
-                className="border rounded w-full p-2"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
+      <Navbar setNavHeight={setNavHeight} darkMode={darkMode} />
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
-              <input
-                type="password"
-                required
-                className="border rounded w-full p-2"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+      <Slideshow navHeight={navHeight} />
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700"
-            >
-              {loading ? 'Creating...' : 'Create Main Admin'}
-            </button>
-          </form>
+      <div className="flex mt-6">
+        
+      </div>
+      <div className="flex flex-col lg:flex-row gap-6">
+        
 
-          {successMsg && <p className="text-green-600 mt-4">{successMsg}</p>}
-          {errorMsg && <p className="text-red-600 mt-4">{errorMsg}</p>}
+        {/* Islamic Calendar */}
+        <div className="lg:w-2/3 w-full">
+          <Calendar />
+        </div>
+        {/* Prayer Times */}
+        <div className="lg:w-1/3 w-full">
+          <PrayerTimes />
         </div>
       </div>
-    </ProtectedRoute>
+      <NoticeCard />
+      <ServiceSection />
+      <Footer />
+    </div>
   );
 }
