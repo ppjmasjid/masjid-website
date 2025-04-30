@@ -10,13 +10,39 @@ import Calendar  from "@/components/Calendar";
 import NoticeCard  from "@/components/NoticeCard";
 
 import { Amiri } from 'next/font/google';
-
+import AyahHadisRotator from "@/components/AyahHadisRotator";
 const amiri = Amiri({ subsets: ['arabic'], weight: '400' });
+import CardGrid, { SimpleCard } from "@/components/CardGrid";
 
 
+const data: SimpleCard[] = [
 
-
-
+  {
+    title: "Donate to Mosque",
+    description: "Support us via online donation.",
+    href: "https://example.com",
+    external: true,
+    image: "/images/donate.jpg",
+  },
+  {
+    title: "Prayer Times",
+    description: "Check daily Adhan and Jamaat timings.",
+    href: "/prayer-times",
+    image: "/images/prayer.jpg",
+  },  
+  {
+    title: "Prayer Times",
+    description: "Check daily Adhan and Jamaat timings.",
+    href: "/prayer-times",
+    image: "/images/prayer.jpg",
+  },
+  {
+    title: "Prayer Times",
+    description: "Check daily Adhan and Jamaat timings.",
+    href: "/prayer-times",
+  
+  },
+];
 
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
@@ -52,9 +78,7 @@ export default function Home() {
 
       <Slideshow navHeight={navHeight} />
 
-      <div className="flex mt-6">
-        
-      </div>
+       <AyahHadisRotator />
       <div className="flex flex-col lg:flex-row gap-6">
         
 
@@ -68,7 +92,7 @@ export default function Home() {
         </div>
       </div>
       <NoticeCard />
-      <ServiceSection />
+      <CardGrid cards={data} />;
       <Footer />
     </div>
   );

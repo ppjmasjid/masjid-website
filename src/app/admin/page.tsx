@@ -6,7 +6,7 @@ import { auth, db, app } from '@/utils/firestore'; // keep this as is
 import { onAuthStateChanged } from "firebase/auth";
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from "@/contexts/AuthContext";
-
+import AllowedYearsControl from '@/components/AllowedYearsControl';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import {
   collection,
@@ -30,12 +30,126 @@ export default function AdminPage() {
   const [providerAmount, setProviderAmount] = useState('');
   const [selectedSubAdmin, setSelectedSubAdmin] = useState('');
 
+
+
+  const [newCategory, setNewCategory] = useState('');
+  const [categories, setCategories] = useState<any[]>([]);
+
+
+
+
+
+
   const fetchSubAdmins = async () => {
     const q = query(collection(db, 'admins'), where('isMain', '==', false));
     const querySnapshot = await getDocs(q);
     const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     setSubAdmins(data);
   };
+
+
+  //providers list 
+  const [providers, setProviders] = useState<any[]>([]);
+  const fetchProviders = async () => {
+    const querySnapshot = await getDocs(collection(db, 'moneyProviders'));
+    const rawProviders = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return { id: doc.id, subAdminId: data.subAdminId || '', ...data };
+    });
+
+    const q = query(collection(db, 'admins'), where('isMain', '==', false));
+    const adminSnapshot = await getDocs(q);
+    const adminMap = new Map();
+    adminSnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      adminMap.set(doc.id, data.name);
+    });
+
+    const enrichedProviders = rawProviders.map((provider) => ({
+      ...provider,
+      subAdminName: adminMap.get(provider.subAdminId) || provider.subAdminId,
+    }));
+
+    setProviders(enrichedProviders);
+  };
+
+  useEffect(() => {
+    fetchSubAdmins();
+    fetchProviders();
+
+  }, []);
+
+
+
+
+
+  const handleDeleteProvider = async (id: string, name: string) => {
+    const confirmation = prompt(`Type the provider's name (${name}) to confirm deletion:`);
+
+    if (confirmation?.trim().toLowerCase() !== name.toLowerCase()) {
+      alert('Confirmation failed. Provider not deleted.');
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'moneyProviders', id));
+      fetchProviders();
+      alert('Provider deleted successfully.');
+    } catch (err) {
+      alert('Error deleting provider.');
+    }
+  };
+
+
+
+
+  //catagory 
+
+  const fetchCategories = async () => {
+    const snapshot = await getDocs(collection(db, 'specialDonationCategories'));
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setCategories(data);
+  };
+
+
+  useEffect(() => {
+
+    fetchCategories(); // new
+  }, []);
+
+
+
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) {
+      alert('Category name required.');
+      return;
+    }
+
+    await addDoc(collection(db, 'specialDonationCategories'), { name: newCategory });
+    setNewCategory('');
+    fetchCategories();
+  };
+
+
+  const handleDeleteCategory = async (id: string, name: string) => {
+    const confirmation = prompt(`Type "${name}" to confirm deletion:`);
+
+    if (confirmation?.trim() !== name) {
+      alert('Confirmation failed.');
+      return;
+    }
+
+    await deleteDoc(doc(db, 'specialDonationCategories', id));
+    fetchCategories();
+  };
+
+
+
+
+
+
+
+
 
 
 
@@ -53,47 +167,47 @@ export default function AdminPage() {
 
 
   // Add this above your component
-const imgbbAPIKey = '40e58544cb5b668e512765223d0f98eb'; // Replace with your real API key
+  const imgbbAPIKey = '40e58544cb5b668e512765223d0f98eb'; // Replace with your real API key
 
-// Add this to state
-const [imageFile, setImageFile] = useState<File | null>(null);
+  // Add this to state
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
-const handleAddNotice = async () => {
-  if (!title || !date || !description || !imageFile) {
-    alert("Fill all fields and upload an image.");
-    return;
-  }
+  const handleAddNotice = async () => {
+    if (!title || !date || !description || !imageFile) {
+      alert("Fill all fields and upload an image.");
+      return;
+    }
 
-  try {
-    const formData = new FormData();
-    formData.append("image", imageFile);
+    try {
+      const formData = new FormData();
+      formData.append("image", imageFile);
 
-    const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbAPIKey}`, {
-      method: "POST",
-      body: formData,
-    });
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbAPIKey}`, {
+        method: "POST",
+        body: formData,
+      });
 
-    const imgData = await res.json();
-    const uploadedImageUrl = imgData.data.url;
+      const imgData = await res.json();
+      const uploadedImageUrl = imgData.data.url;
 
-    await addDoc(collection(db, "notices"), {
-      title,
-      date,
-      imageUrl: uploadedImageUrl,
-      description,
-    });
+      await addDoc(collection(db, "notices"), {
+        title,
+        date,
+        imageUrl: uploadedImageUrl,
+        description,
+      });
 
-    setTitle('');
-    setDate('');
-    setImageFile(null);
-    setDescription('');
-    fetchNotices();
-    alert("Notice added");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to upload image or add notice");
-  }
-};
+      setTitle('');
+      setDate('');
+      setImageFile(null);
+      setDescription('');
+      fetchNotices();
+      alert("Notice added");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload image or add notice");
+    }
+  };
 
 
   const handleDeleteNotice = async (id: string) => {
@@ -193,91 +307,117 @@ const handleAddNotice = async () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen bg-gradient-to-tr from-gray-100 to-gray-200 p-4 sm:p-6 md:p-8">
       <ProtectedRoute role="admin">
-        <div className="max-w-6xl mx-auto space-y-10">
-          <h1 className="text-3xl font-bold text-center text-gray-800">
+        <div className="max-w-7xl mx-auto space-y-12">
+          <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-8">
             🛡️ Main Admin Panel
           </h1>
 
           {/* Add Sub-Admin */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold text-blue-700 mb-4">Add Sub-Admin</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-blue-700 mb-6">➕ Add Sub-Admin</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <input
                 type="text"
                 placeholder="Sub-admin name"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-500 placeholder-gray-500 border"
+                className="input-field"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
-
               <input
                 type="email"
                 placeholder="Sub-admin email"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 placeholder-gray-500  text-gray-500 border"
+                className="input-field"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
               <input
                 type="password"
                 placeholder="Password"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-500 placeholder-gray-500 border"
+                className="input-field md:col-span-2"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <button
-              className="mt-4 bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 rounded-md transition"
+              className="btn-primary mt-6"
               onClick={handleAddSubAdmin}
               disabled={loading}
             >
               {loading ? 'Creating...' : 'Create Sub-Admin'}
             </button>
-          </div>
+          </section>
 
           {/* Assign Money Provider */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Assign Money Provider</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-purple-700 mb-6">💰 Assign Money Provider</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <input
                 type="text"
                 placeholder="Provider name"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 text-gray-500 placeholder-gray-500 border"
+                className="input-field"
                 value={providerName}
                 onChange={(e) => setProviderName(e.target.value)}
               />
               <input
                 type="number"
                 placeholder="Amount"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 text-gray-500 placeholder-gray-500 border"
+                className="input-field"
                 value={providerAmount}
                 onChange={(e) => setProviderAmount(e.target.value)}
               />
               <select
-                className="w-full color-black px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 text-gray-500 placeholder-gray-500 border"
+                className="input-field"
                 value={selectedSubAdmin}
                 onChange={(e) => setSelectedSubAdmin(e.target.value)}
               >
                 <option value="">Select Sub-admin</option>
                 {subAdmins.map((admin) => (
-                  <option key={admin.id} value={admin.id} className='text-black'>
+                  <option key={admin.id} value={admin.id} className="text-black">
                     {admin.email}
                   </option>
                 ))}
               </select>
             </div>
             <button
-              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-md transition"
+              className="btn-secondary mt-6"
               onClick={handleAddProvider}
             >
               Assign Provider
             </button>
-          </div>
+          </section>
+
+          {/* Provider List */}
+          <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-purple-800 mb-6">📄 Provider List</h2>
+            {providers.length === 0 ? (
+              <p className="text-gray-500 text-center">No providers found.</p>
+            ) : (
+              <ul className="divide-y divide-gray-200">
+                {providers.map((provider) => (
+                  <li
+                    key={provider.id}
+                    className="py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
+                  >
+                    <span className="text-gray-700 text-sm sm:text-base">
+                      Name: <strong>{provider.name}</strong> | Amount: ₹{provider.amount} | Assigned To: {provider.subAdminName}
+                    </span>
+                    <button
+                      className="btn-danger"
+                      onClick={() => handleDeleteProvider(provider.id, provider.name)}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
           {/* Sub-Admin List */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Sub-Admins</h2>
+          <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">👥 Sub-Admins</h2>
             {subAdmins.length === 0 ? (
               <p className="text-gray-500 text-center">No sub-admins found.</p>
             ) : (
@@ -285,11 +425,13 @@ const handleAddNotice = async () => {
                 {subAdmins.map((admin) => (
                   <li
                     key={admin.id}
-                    className="py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
+                    className="py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
                   >
-                    <span className="text-gray-700">Name:{admin.name}   |  Email:{admin.email}</span>
+                    <span className="text-gray-700 text-sm sm:text-base">
+                      Name: <strong>{admin.name}</strong> | Email: {admin.email}
+                    </span>
                     <button
-                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md text-sm"
+                      className="btn-danger"
                       onClick={() => handleDelete(admin.id)}
                     >
                       Delete
@@ -298,57 +440,59 @@ const handleAddNotice = async () => {
                 ))}
               </ul>
             )}
-          </div>
+          </section>
+
           {/* Add Notice */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold text-red-600 mb-4">Add Notice</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-red-600 mb-6">📢 Add Notice</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <input
                 type="text"
                 placeholder="Title"
-                className="px-4 py-2 border rounded"
+                className="input-field"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
               <input
                 type="date"
-                className="px-4 py-2 border rounded"
+                className="input-field"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
               <input
-  type="file"
-  accept="image/*"
-  className="px-4 py-2 border rounded"
-  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-/>
-
+                type="file"
+                accept="image/*"
+                className="input-field"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              />
               <textarea
                 placeholder="Description"
-                className="col-span-2 px-4 py-2 border rounded"
+                className="input-field md:col-span-2"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                rows={4}
               />
             </div>
-            <button
-              className="mt-4 bg-blue-600 text-white px-6 py-2 rounded"
-              onClick={handleAddNotice}
-            >
+            <button className="btn-secondary mt-6" onClick={handleAddNotice}>
               Add Notice
             </button>
-          </div>
+          </section>
 
           {/* Notice List */}
-          <div className="bg-white mt-8 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">All Notices</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">📃 All Notices</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {notices.map((notice) => (
-                <div key={notice.id} className="border p-4 rounded shadow">
-                  <img src={notice.imageUrl} className="h-40 w-full object-cover rounded mb-2" />
-                  <h3 className="text-lg font-bold">{notice.title}</h3>
+                <div key={notice.id} className="rounded-lg border shadow p-4 bg-gray-50 hover:shadow-lg transition">
+                  <img
+                    src={notice.imageUrl}
+                    alt={notice.title}
+                    className="h-40 w-full object-cover rounded-md mb-3"
+                  />
+                  <h3 className="text-lg font-bold text-gray-800">{notice.title}</h3>
                   <p className="text-sm text-gray-500">{notice.date}</p>
                   <button
-                    className="text-red-600 mt-2 text-sm"
+                    className="text-sm text-red-600 hover:text-red-800 mt-2"
                     onClick={() => handleDeleteNotice(notice.id)}
                   >
                     Delete
@@ -356,11 +500,39 @@ const handleAddNotice = async () => {
                 </div>
               ))}
             </div>
-          </div>
+          </section>
+          {/* Category Management */}
+          <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-green-700 mb-6">📂 Manage Special Donation Categories</h2>
 
+            <div className="flex flex-col sm:flex-row gap-4">
+              <input
+                type="text"
+                placeholder="New Category Name"
+                className="input-field"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+              />
+              <button onClick={handleAddCategory} className="btn-primary">
+                Add Category
+              </button>
+            </div>
 
+            <ul className="mt-6 divide-y divide-gray-200">
+              {categories.map((cat) => (
+                <li key={cat.id} className="flex justify-between py-2 items-center">
+                  <span className="text-gray-800">{cat.name}</span>
+                  <button onClick={() => handleDeleteCategory(cat.id, cat.name)} className="btn-danger text-sm">
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <AllowedYearsControl />
         </div>
       </ProtectedRoute>
     </div>
   );
+
 }
