@@ -14,8 +14,11 @@ interface Props {
 }
 
 export default function SimpleCardGrid({ cards }: Props) {
-  return (
+  return(
+   <div>
+    <h1 className="text-5xl text-center font-bold text-black dark:text-black m-4 ">Features</h1>
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 p-4">
+     
       {cards.map((card, index) => {
         const Wrapper = card.external ? "a" : Link;
         const props = card.external
@@ -46,5 +49,6 @@ export default function SimpleCardGrid({ cards }: Props) {
         );
       })}
     </div>
+  </div>
   );
 }

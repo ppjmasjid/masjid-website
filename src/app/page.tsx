@@ -18,28 +18,52 @@ import CardGrid, { SimpleCard } from "@/components/CardGrid";
 const data: SimpleCard[] = [
 
   {
-    title: "Donate to Mosque",
-    description: "Support us via online donation.",
-    href: "https://example.com",
+    title: "About Masjid",
+    description: " Learn more about our mosque and its history.",
+    href: " /about",
     external: true,
-    image: "/images/donate.jpg",
+    // image: "/images/donate.jpg",
   },
   {
-    title: "Prayer Times",
-    description: "Check daily Adhan and Jamaat timings.",
-    href: "/prayer-times",
-    image: "/images/prayer.jpg",
+    title: "About Masjid Committee", 
+    description: "Know more about our committee members.",
+    href: "/committee",
+    // image: "/images/prayer.jpg",
   },  
   {
-    title: "Prayer Times",
-    description: "Check daily Adhan and Jamaat timings.",
-    href: "/prayer-times",
-    image: "/images/prayer.jpg",
+    title: "Contact Us",
+    description: "Feel free to reach out to us.",
+    href: "/contact",
+    // image: "/images/prayer.jpg",
   },
   {
-    title: "Prayer Times",
-    description: "Check daily Adhan and Jamaat timings.",
-    href: "/prayer-times",
+    title: "About Our Imam",
+    description: "Our Imam is a dedicated and knowledgeable leader.",
+    href: "/imam",
+  
+  },
+  {
+    title: "Notice Board",
+    description: "Stay updated with the latest announcements.",
+    href: "/notices",
+  
+  },
+  {
+    title: "Our Community Members",
+    description: "Meet our vibrant community members.",
+    href: "/provider",
+  
+  },
+  {
+    title: "Dashboard",
+    description: "Our Financial Accounts and Reports are open for all.",
+    href: "/dashboard",
+  
+  },
+  {
+    title: "Donate",
+    description: "Donate to support our mosque and its activities.",
+    href: "/DonationPage",
   
   },
 ];

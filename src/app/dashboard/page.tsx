@@ -177,10 +177,10 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto py-10 px-4" ref={printRef}>
-        <h1 className="text-3xl font-bold mb-6">📊 Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-600 mb-6">📊 Admin Dashboard</h1>
 
         {/* Collection Type */}
-        <div className="bg-white shadow-md rounded-lg p-4 sm:p-6">
+        <div className="bg-white shadow-md rounded-lg p-4 sm:p-6 text-gray-800 mb-6">
           <label className="block text-sm font-semibold text-gray-700 mb-2">📂 Collection Type</label>
           <select
             className="w-full sm:w-64 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400"
@@ -196,7 +196,7 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
 
         {/* Special Collection Form */}
         {viewMode === 'special' && (
-          <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="bg-white shadow-md rounded-lg p-6 ">
             <h2 className="text-xl font-semibold text-purple-700 mb-4">✨ Special Collection Entry</h2>
             <SpecialCollectionForm/>
            
@@ -217,9 +217,9 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
 
     {/* Regular Collection View */}
     {viewMode === 'regular' && (
-        <div>
+        <div className='text-gray-800'>
 
-          <div className="mb-6 w-full sm:w-64">
+          <div className="mb-6 w-full sm:w-64 text-gray-700">
             <label className="block mb-1 text-sm font-medium text-gray-700">Select Period</label>
             <select
               className="w-full border rounded p-2"
@@ -320,7 +320,7 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
           </div>
 
           {/* Table */}
-          <div className="bg-white p-6 rounded shadow overflow-auto">
+          <div className="bg-white p-6 rounded shadow overflow-auto text-gray-800">
             <h2 className="text-xl font-semibold mb-4">📄 All Money Providers</h2>
             {filteredProviders.length === 0 ? (
               <p className="text-gray-500">No data available.</p>
@@ -328,7 +328,7 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
               <table className="w-full border text-left text-sm">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="p-2 border">#</th>
+                    <th className="p-2 border">Sr.</th>
                     <th className="p-2 border">Name</th>
                     <th className="p-2 border">Amount</th>
                     <th className="p-2 border">Sub-Admin</th>

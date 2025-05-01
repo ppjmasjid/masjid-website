@@ -122,8 +122,8 @@ const ContactPage = () => {
           ></iframe>
         </div>
       </section>
-
-      <Footer />
+<Footer  />
+    
     </div>
   );
 };

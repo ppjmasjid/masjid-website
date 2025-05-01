@@ -2,6 +2,11 @@
 
 import Image from 'next/image'
 
+import Breadcrumb from '@/components/Breadcrumb';
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
+
 const topMembers = [
   {
     name: 'Mohammad Zahid',
@@ -73,8 +78,13 @@ const MemberCard = ({ member }: { member: any }) => (
 )
 
 export default function CommitteePage() {
-  return (
+  return (<>
+    <Navbar className="fixed top-0 left-0 w-full z-50 bg-gray-600" />
+    <Breadcrumb />
+    <PageHeader location="contact" />
+
     <div className="max-w-6xl mx-auto px-4 py-10">
+    
       <h1 className="text-3xl font-bold text-center mb-10">Masjid Committee</h1>
 
       {/* Top Two Members */}
@@ -90,6 +100,8 @@ export default function CommitteePage() {
           <MemberCard key={index} member={member} />
         ))}
       </div>
+      <Footer />
     </div>
+    </>
   )
 }

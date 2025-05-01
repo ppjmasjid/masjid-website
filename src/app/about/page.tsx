@@ -1,18 +1,25 @@
+"use client";
 import Image from 'next/image';
+
+
 import Breadcrumb from '@/components/Breadcrumb';
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
+import React, { useState } from 'react';
 const AboutPage = () => {
+  const [user, setUser] = useState(null);
   return (
     <div className="container mx-auto px-4 py-10">
-          <Breadcrumb />
-         <section className="relative w-full h-[300px] bg-cover bg-center" style={{ backgroundImage: 'url(/images/mosque-header.jpg)' }}>
-      <div className="absolute inset-0 bg-black opacity-50"></div> {/* Dark overlay */}
-      <div className="container mx-auto px-4 py-20 text-center text-white relative z-10">
-        <h1 className="text-5xl font-bold mb-4">Welcome to Our Mosque</h1>
-        <p className="text-lg md:text-xl">
-          A place of worship, community, and tranquility. Join us in our journey to grow spiritually and live by the teachings of Islam.
-        </p>
-      </div>
-    </section>
+      <div className="container mx-auto px-4 py-10">
+     <Navbar className="fixed top-0 left-0 w-full z-50 bg-gray-600" />
+  <Breadcrumb />
+  <PageHeader location="contact" />
+
+</div>
+      
+
+     
       {/* History Section */}
       <section className="flex flex-col-reverse md:flex-row items-center space-x-6 mb-16">
         <div className="flex-1">
@@ -69,6 +76,7 @@ const AboutPage = () => {
           />
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

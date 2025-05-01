@@ -222,7 +222,7 @@ export default function MoneyUsage() {
     const totalBalance = Object.values(balanceMap).reduce((sum, val) => sum + val, 0);
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
+        <div className="max-w-4xl mx-auto p-6 text-gray-900 ">
             <h2 className="text-2xl font-bold mb-6 text-gray-500">Money Usage Management</h2>
 
             <div className="bg-white p-4 rounded-xl shadow mb-6">
@@ -298,62 +298,69 @@ export default function MoneyUsage() {
                 </div>
             </div>
             <div className="bg-white p-4 rounded-xl shadow">
-  <h3 className="text-lg font-bold mb-4 text-gray-500">Usage Records</h3>
-  <div className="overflow-x-auto">
-    <table className="w-full text-sm text-left text-gray-500">
-      <thead>
-        <tr className="border-b">
-          <th className="py-2 px-4">Category</th>
-          <th className="py-2 px-4">Where Used</th>
-          <th className="py-2 px-4">Amount</th>
-          <th className="py-2 px-4">Image</th>
-          <th className="py-2 px-4 hidden sm:table-cell">By</th>
-          <th className="py-2 px-4 hidden sm:table-cell">Date</th>
-          <th className="py-2 px-4">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {usageRecords.map((record, index) => (
-          <tr key={index} className="border-t">
-            <td className="px-4 py-2">{record.category}</td>
-            <td className="px-4 py-2">{record.whereUsed}</td>
-            <td className="px-4 py-2">৳{record.amount}</td>
-            <td className="px-4 py-2 text-center">
-              {record.imageUrl ? (
-                <a
-                  href={record.imageUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
-                >
-                  View
-                </a>
-              ) : (
-                <span className="text-gray-400 italic">No image</span>
-              )}
-            </td>
-            <td className="px-4 py-2 hidden sm:table-cell">{record.createdBy || '-'}</td>
-            <td className="px-4 py-2 hidden sm:table-cell">{record.createdAt || '-'}</td>
-            <td className="px-4 py-2 space-x-2">
-              <button
-                onClick={() => handleEdit(record)}
-                className="text-yellow-600 hover:underline"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(record.id)}
-                className="text-red-600 hover:underline"
-              >
-                Delete
-              </button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
+                <h3 className="text-lg font-bold mb-4 text-gray-500">Usage Records</h3>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left text-gray-500">
+                        <thead>
+                            <tr className="border-b">
+                                <th className="py-2 px-4">Category</th>
+                                <th className="py-2 px-4">Where Used</th>
+                                <th className="py-2 px-4">Amount</th>
+                                <th className="py-2 px-4">Image</th>
+                                <th className="py-2 px-4 hidden sm:table-cell">By</th>
+                                <th className="py-2 px-4 hidden sm:table-cell">Date</th>
+                                <th className="py-2 px-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {usageRecords.map((record, index) => (
+                                <tr key={index} className="border-t">
+                                    <td className="px-4 py-2">{record.category}</td>
+                                    <td className="px-4 py-2">{record.whereUsed}</td>
+                                    <td className="px-4 py-2">৳{record.amount}</td>
+                                    <td className="px-4 py-2 text-center">
+                                        {record.imageUrl ? (
+                                            <a
+                                                href={record.imageUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 underline"
+                                            >
+                                                View
+                                            </a>
+                                        ) : (
+                                            <span className="text-gray-400 italic">No image</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-2 hidden sm:table-cell">{record.createdBy || '-'}</td>
+                                    <td className="px-4 py-2 hidden sm:table-cell">{record.createdAt || '-'}</td>
+                                    <td className="px-4 py-2 space-x-2">
+                                        {record.createdBy === subAdminName ? (
+                                            <>
+                                                <button
+                                                    onClick={() => handleEdit(record)}
+                                                    className="text-yellow-600 hover:underline"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(record.id)}
+                                                    className="text-red-600 hover:underline"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <span className="text-gray-400 italic">No actions</span>
+                                        )}
+                                    </td>
+
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
         </div>
     );

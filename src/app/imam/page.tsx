@@ -1,6 +1,13 @@
 import ImamCard from '@/components/ImamCard';
 
+  
+import Breadcrumb from '@/components/Breadcrumb';
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
+
 export default function ImamPage() {
+
   const imams = [
     {
       id: '1',
@@ -40,10 +47,24 @@ export default function ImamPage() {
   ];
 
   return (
+    <div> 
+      <Navbar className="fixed top-0 left-0 w-full z-50 bg-gray-600" />
+    
+      <PageHeader location="contact" />
+      <Breadcrumb />
     <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      
+  
+
+       
+ 
       {imams.map(imam => (
         <ImamCard key={imam.id} imam={imam} />
       ))}
+     
     </div>
+      <Footer/>
+      </div>
   );
+ 
 }
