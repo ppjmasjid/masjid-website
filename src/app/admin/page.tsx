@@ -8,8 +8,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from "@/contexts/AuthContext";
 import AllowedYearsControl from '@/components/AllowedYearsControl';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth"; // at the top if not already imported
-
+ 
 import {
   collection,
   addDoc,
@@ -37,56 +36,8 @@ export default function AdminPage() {
   const [newCategory, setNewCategory] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
 
-//edit
-const [editingId, setEditingId] = useState<string | null>(null);
-const [editedName, setEditedName] = useState('');
-const [editedEmail, setEditedEmail] = useState('');
-const [newPassword, setNewPassword] = useState('');
-
-
-const handleEdit = (admin: any) => {
-  const confirmation = prompt(`Type the sub-admin's email (${admin.email}) to confirm editing:`);
-
-  if (confirmation?.trim().toLowerCase() !== admin.email.toLowerCase()) {
-    alert('Confirmation failed. Edit cancelled.');
-    return;
-  }
-
-  setEditingId(admin.id);
-  setEditedName(admin.name);
-  setEditedEmail(admin.email);
-};
-
-
-
-const handleSaveEdit = async (id: string) => {
-  try {
-    // Update name/email in Firestore
-    await setDoc(doc(db, 'admins', id), { email: editedEmail, name: editedName, isMain: false });
-    await setDoc(doc(db, 'users', id), { email: editedEmail, name: editedName, role: 'sub-admin' });
-
-    // Optional: update password if provided
-    if (newPassword.trim()) {
-      const user = auth.currentUser;
-      if (user) {
-        const credential = EmailAuthProvider.credential(user.email!, prompt("Enter your admin password again:") || '');
-        await reauthenticateWithCredential(user, credential);
-        await updatePassword(user, newPassword.trim());
-        alert("Password updated.");
-      } else {
-        alert("You must be logged in as an authenticated user to change password.");
-      }
-    }
-
-    setEditingId(null);
-    setNewPassword('');
-    await fetchSubAdmins();
-    alert('Sub-admin updated successfully.');
-  } catch (err) {
-    console.error(err);
-    alert('Failed to update sub-admin.');
-  }
-};
+  
+  
 
 
 
@@ -472,75 +423,31 @@ const handleSaveEdit = async (id: string) => {
 
           {/* Sub-Admin List */}
           <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
-  <h2 className="text-2xl font-semibold text-green-700 mb-6">👥 Sub-Admins</h2>
-  {subAdmins.length === 0 ? (
-    <p className="text-gray-500 text-center">No sub-admins found.</p>
-  ) : (
-    <ul className="divide-y divide-gray-200">
-      {subAdmins.map((admin) => (
-        <li key={admin.id} className="py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          {editingId === admin.id ? (
-            <div className="flex flex-col md:flex-row gap-2 items-center w-full">
-              <input
-                type="text"
-                className="input-field"
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-              />
-              <input
-                type="email"
-                className="input-field"
-                value={editedEmail}
-                onChange={(e) => setEditedEmail(e.target.value)}
-              />
-              <input
-  type="password"
-  placeholder="New password (leave blank to keep current)"
-  className="input-field"
-  value={newPassword}
-  onChange={(e) => setNewPassword(e.target.value)}
-/>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">👥 Sub-Admins</h2>
+            {subAdmins.length === 0 ? (
+              <p className="text-gray-500 text-center">No sub-admins found.</p>
+            ) : (
+              <ul className="divide-y divide-gray-200">
+                {subAdmins.map((admin) => (
+                  <li
+                    key={admin.id}
+                    className="py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
+                  >
+                    <span className="text-gray-700 text-sm sm:text-base">
+                      Name: <strong>{admin.name}</strong> | Email: {admin.email}
+                    </span>
+                    <button
+                      className="btn-danger"
+                      onClick={() => handleDelete(admin.id)}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
-              <button
-                className="btn-primary"
-                onClick={() => handleSaveEdit(admin.id)}
-              >
-                Save
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => setEditingId(null)}
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col md:flex-row gap-4 items-center w-full justify-between">
-              <div>
-                <p className="text-lg font-medium">{admin.name}</p>
-                <p className="text-sm text-gray-500">{admin.email}</p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  className="text-blue-600 hover:text-blue-800 underline"
-                  onClick={() => handleEdit(admin)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="text-red-600 hover:text-red-800 underline"
-                  onClick={() => handleDelete(admin.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          )}
-        </li>
-      ))}
-    </ul>
-  )}
-</section>
 
 
           {/* Add Notice */}
