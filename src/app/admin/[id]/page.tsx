@@ -6,6 +6,8 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import SpecialCollectionForm from '@/components/SpecialCollectionForm';
 import MoneyUsage from '@/components/MoneyUsage';
 import { getDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+
 
 import {
   collection,
@@ -54,31 +56,37 @@ const months = [
 
 export default function SubAdminPanel() {
   const { id } = useParams();
-  const [viewMode, setViewMode] = useState<'regular' | 'special'|'special collection usage '>('regular');
+  const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collection usage '>('regular');
   const [providers, setProviders] = useState<Provider[]>([]);
   const [providedDates, setProvidedDates] = useState<{ [key: string]: string }>({});
   const [selectedPeriod, setSelectedPeriod] = useState<string>(() => {
     const now = new Date();
     return `${months[now.getMonth()]}${now.getFullYear()}`;
   });
-//fire period
-const [allowedYears, setAllowedYears] = useState<number[]>([]);
-const generatePeriodOptions = (allowedYears: number[]) => {
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
+  //fire period
+  const [allowedYears, setAllowedYears] = useState<number[]>([]);
+  const generatePeriodOptions = (allowedYears: number[]) => {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
 
-  const options: string[] = [];
+    const options: string[] = [];
 
-  allowedYears.forEach((year) => {
-    months.forEach((month) => {
-      options.push(`${month}${year}`);
+    allowedYears.forEach((year) => {
+      months.forEach((month) => {
+        options.push(`${month}${year}`);
+      });
     });
-  });
 
-  return options;
-};
+    return options;
+  };
+
+
+  //email confirmation
+  const auth = getAuth();
+  const currentUserEmail = auth.currentUser?.email;
+
 
 
   const fetchProviders = async () => {
@@ -104,16 +112,16 @@ const generatePeriodOptions = (allowedYears: number[]) => {
       alert('Please select a provided date');
       return;
     }
-
-    const userInput = prompt('Type your email to confirm payment:');
-    if (!userInput || !userInput.trim()) {
-      alert('Confirmation cancelled.');
+  
+    const emailInput = prompt(`Type your email (${currentUserEmail}) to confirm payment:`);
+    if (!emailInput || emailInput.trim().toLowerCase() !== currentUserEmail?.toLowerCase()) {
+      alert('Incorrect email. Confirmation cancelled.');
       return;
     }
-
+  
     const provider = providers.find((p) => p.id === providerId);
     if (!provider) return;
-
+  
     const currentStatus = provider.statusByMonth || {};
     const updatedStatusByMonth = {
       ...currentStatus,
@@ -122,25 +130,41 @@ const generatePeriodOptions = (allowedYears: number[]) => {
         providedDate: date,
       },
     };
-
+  
     const ref = doc(db, 'moneyProviders', providerId);
     await updateDoc(ref, {
       statusByMonth: updatedStatusByMonth,
     });
-
+  
     fetchProviders();
   };
+  
+
 
   const handleEdit = async (providerId: string) => {
-    const email = prompt('Enter your email to confirm editing:');
-    if (!email || !email.trim()) {
-      alert('Editing cancelled.');
+    const auth = getAuth();
+    const currentUserEmail = auth.currentUser?.email;
+
+    const email = prompt(`Enter your email (${currentUserEmail}) to confirm editing:`);
+
+    if (!email || email.trim().toLowerCase() !== currentUserEmail?.toLowerCase()) {
+      alert('Incorrect email. Editing cancelled.');
       return;
     }
 
-    const date = prompt('Enter new provided date (yyyy-mm-dd):');
-    if (!date || isNaN(Date.parse(date))) {
-      alert('Invalid date.');
+    const newStatus = prompt('Enter new status (paid/unpaid):');
+    if (!newStatus || !['paid', 'unpaid'].includes(newStatus.toLowerCase())) {
+      alert('Invalid status. Must be "paid" or "unpaid".');
+      return;
+    }
+
+    const date =
+      newStatus === 'paid'
+        ? prompt('Enter new provided date (yyyy-mm-dd):')
+        : undefined;
+
+    if (newStatus === 'paid' && (!date || isNaN(Date.parse(date)))) {
+      alert('Invalid date for paid status.');
       return;
     }
 
@@ -150,8 +174,8 @@ const generatePeriodOptions = (allowedYears: number[]) => {
     const updatedStatusByMonth = {
       ...provider.statusByMonth,
       [selectedPeriod]: {
-        status: 'paid',
-        providedDate: date,
+        status: newStatus.toLowerCase(),
+        ...(newStatus.toLowerCase() === 'paid' ? { providedDate: date } : {}),
       },
     };
 
@@ -159,6 +183,7 @@ const generatePeriodOptions = (allowedYears: number[]) => {
     await updateDoc(ref, { statusByMonth: updatedStatusByMonth });
     fetchProviders();
   };
+
 
   useEffect(() => {
     if (id) fetchProviders();
@@ -173,10 +198,10 @@ const generatePeriodOptions = (allowedYears: number[]) => {
         setAllowedYears(data.allowedYears || []);
       }
     };
-  
+
     fetchYears();
   }, []);
-  
+
 
   const paidProviders = providers.filter(
     (p) => p.statusByMonth?.[selectedPeriod]?.status === 'paid'
@@ -190,21 +215,21 @@ const generatePeriodOptions = (allowedYears: number[]) => {
       <div className="min-h-screen bg-gradient-to-tr from-gray-100 to-white p-4 sm:p-6">
         <div className="max-w-6xl mx-auto space-y-8">
           <h1 className="text-3xl font-extrabold text-center text-blue-800">Sub-Admin Panel</h1>
-  
+
           {/* Collection Type */}
           <div className="bg-white shadow-md rounded-lg p-4 sm:p-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">📂 Collection Type</label>
             <select
               className="w-full sm:w-64 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400"
               value={viewMode}
-              onChange={(e) => setViewMode(e.target.value as 'regular' | 'special'|'special collection usage ')}
+              onChange={(e) => setViewMode(e.target.value as 'regular' | 'special' | 'special collection usage ')}
             >
               <option value="regular">Regular Collection</option>
               <option value="special">Special Collection</option>
               <option value="special collection usage ">Special Collection Usage</option>
             </select>
           </div>
-  
+
           {/* Special Collection Form */}
           {viewMode === 'special' && (
             <div className="bg-white shadow-md rounded-lg p-6">
@@ -212,14 +237,14 @@ const generatePeriodOptions = (allowedYears: number[]) => {
               <SpecialCollectionForm subAdminId={id as string} />
             </div>
           )}
-          {/* Special Collection Form */} 
+          {/* Special Collection Form */}
           {viewMode === 'special collection usage ' && (
             <div className="bg-white shadow-md rounded-lg p-6">
               <h2 className="text-xl font-semibold text-purple-700 mb-4">✨ Special Collection Entry</h2>
-              <MoneyUsage  />
+              <MoneyUsage />
             </div>
           )}
-  
+
           {/* Regular Collection View */}
           {viewMode === 'regular' && (
             <>
@@ -236,7 +261,7 @@ const generatePeriodOptions = (allowedYears: number[]) => {
                   ))}
                 </select>
               </div>
-  
+
               {/* Summary Chart */}
               <div className="bg-white shadow-md rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">📊 Summary for {selectedPeriod}</h2>
@@ -251,7 +276,7 @@ const generatePeriodOptions = (allowedYears: number[]) => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-  
+
               {/* Provider List */}
               <div className="bg-white shadow-md rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">💼 Money Providers</h2>
@@ -263,7 +288,7 @@ const generatePeriodOptions = (allowedYears: number[]) => {
                       const statusEntry = provider.statusByMonth?.[selectedPeriod] || { status: 'unpaid' };
                       const status = statusEntry.status;
                       const providedDate = statusEntry.providedDate;
-  
+
                       return (
                         <li key={provider.id} className="py-4">
                           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -282,7 +307,7 @@ const generatePeriodOptions = (allowedYears: number[]) => {
                                 <p className="text-sm text-gray-500">Paid on: {providedDate}</p>
                               )}
                             </div>
-  
+
                             {/* Actions */}
                             <div className="w-full md:w-auto space-y-2">
                               {status === 'unpaid' ? (
@@ -324,6 +349,5 @@ const generatePeriodOptions = (allowedYears: number[]) => {
       </div>
     </ProtectedRoute>
   );
-  
+
 }
-  

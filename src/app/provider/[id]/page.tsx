@@ -205,7 +205,7 @@ const ProviderDetailsPage = () => {
             return (
               <div
                 key={month}
-                className={`grid grid-cols-4 items-center px-4 py-3 border-b transition-all duration-300 ${
+                className={`grid grid-cols-4 items-center px-4 py-3 border-b transition-all duration-300 color-gray-800 ${
                   isPaid ? 'bg-green-50 hover:bg-green-100' : 'bg-red-50 hover:bg-red-100'
                 }`}
               >

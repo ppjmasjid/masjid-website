@@ -150,7 +150,7 @@ const Navbar = ({
           </ul>
 
           <a
-            href="/donate"
+            href="/DonationPage"
             className="block mt-4 md:mt-0 md:ml-4 px-4 py-2 bg-indigo-600 text-white rounded-full shadow hover:bg-indigo-700 transition-all duration-300 font-semibold"
           >
             দান করুন

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-const images = ["/image/siam.jpg","/image/siam.jpg", "/image/siam.jpg"];
+const images = ["/images/mq1.png","/images/mq2.png",];
 
 const Slideshow = ({ navHeight }: { navHeight: number }) => {
   const [currentImage, setCurrentImage] = useState(0);

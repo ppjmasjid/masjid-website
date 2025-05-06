@@ -8,7 +8,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from "@/contexts/AuthContext";
 import AllowedYearsControl from '@/components/AllowedYearsControl';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
- 
+import Select from 'react-select';
 import {
   collection,
   addDoc,
@@ -36,8 +36,8 @@ export default function AdminPage() {
   const [newCategory, setNewCategory] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
 
-  
-  
+
+
 
 
 
@@ -53,6 +53,31 @@ export default function AdminPage() {
     setSubAdmins(data);
   };
 
+
+
+
+  // edit catagori 
+  const [editingCategory, setEditingCategory] = useState<any | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editSubAdmins, setEditSubAdmins] = useState<string[]>([]);
+
+  const handleEditCategory = (cat: any) => {
+    setEditingCategory(cat);
+    setEditName(cat.name);
+    setEditSubAdmins(cat.subAdminIds || []);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingCategory) return;
+
+    await setDoc(doc(db, 'specialDonationCategories', editingCategory.id), {
+      name: editName,
+      subAdminIds: editSubAdmins,
+    });
+
+    setEditingCategory(null);
+    fetchCategories();
+  };
 
   //providers list 
   const [providers, setProviders] = useState<any[]>([]);
@@ -110,6 +135,12 @@ export default function AdminPage() {
 
 
   //catagory 
+  const options = subAdmins.map((admin) => ({
+    value: admin.id,
+    label: admin.name || admin.email,
+  }));
+
+
 
   const fetchCategories = async () => {
     const snapshot = await getDocs(collection(db, 'specialDonationCategories'));
@@ -125,16 +156,28 @@ export default function AdminPage() {
 
 
 
+  const [selectedCategorySubAdmins, setSelectedCategorySubAdmins] = useState<string[]>([]);
+
   const handleAddCategory = async () => {
     if (!newCategory.trim()) {
       alert('Category name required.');
       return;
     }
 
-    await addDoc(collection(db, 'specialDonationCategories'), { name: newCategory });
-    setNewCategory('');
-    fetchCategories();
+    try {
+      await addDoc(collection(db, 'specialDonationCategories'), {
+        name: newCategory,
+        subAdminIds: selectedCategorySubAdmins,
+      });
+      setNewCategory('');
+      setSelectedCategorySubAdmins([]);
+      fetchCategories();
+      alert('Category added');
+    } catch (err) {
+      alert('Failed to add category');
+    }
   };
+
 
 
   const handleDeleteCategory = async (id: string, name: string) => {
@@ -510,33 +553,123 @@ export default function AdminPage() {
             </div>
           </section>
           {/* Category Management */}
-          <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
-            <h2 className="text-2xl font-semibold text-green-700 mb-6">📂 Manage Special Donation Categories</h2>
+          <section className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
+            <h2 className="text-2xl font-bold text-green-700 flex items-center gap-2">
+              📁 Add Category with Sub-Admins
+            </h2>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="text"
-                placeholder="New Category Name"
-                className="input-field"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-              />
-              <button onClick={handleAddCategory} className="btn-primary">
-                Add Category
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Category Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter new category name"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      Select Sub-Admins
+    </label>
+    <Select
+      isMulti
+      options={options}
+      value={options.filter(opt => selectedCategorySubAdmins.includes(opt.value))}
+      onChange={(selectedOptions) =>
+        setSelectedCategorySubAdmins(selectedOptions.map((opt) => opt.value))
+      }
+      className="react-select-container"
+      classNamePrefix="react-select"
+    />
+  </div>
+
             </div>
 
-            <ul className="mt-6 divide-y divide-gray-200">
-              {categories.map((cat) => (
-                <li key={cat.id} className="flex justify-between py-2 items-center">
-                  <span className="text-gray-800">{cat.name}</span>
-                  <button onClick={() => handleDeleteCategory(cat.id, cat.name)} className="btn-danger text-sm">
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="pt-4">
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-xl transition duration-200"
+                onClick={handleAddCategory}
+              >
+                ➕ Add Category
+              </button>
+            </div>
           </section>
+
+
+          <section className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold text-indigo-700 mb-6">📋 Categories</h2>
+            {categories.length === 0 ? (
+              <p className="text-gray-500">No categories added yet.</p>
+            ) : (
+              <ul className="space-y-4">
+                {categories.map((cat) => (
+                  <li key={cat.id} className="bg-gray-100 p-4 rounded-md shadow-sm">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center">
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-700">{cat.name}</h3>
+                        <p className="text-sm text-gray-600">
+                          Sub-Admins: {cat.subAdminIds?.map((id: any) => {
+                            const match = subAdmins.find((a) => a.id === id);
+                            return match?.name || match?.email || id;
+                          }).join(', ')}
+                        </p>
+                      </div>
+                      <div className="mt-3 sm:mt-0 flex gap-2">
+                        <button
+                          className="btn-secondary"
+                          onClick={() => handleEditCategory(cat)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn-danger"
+                          onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          {editingCategory && (
+            <div className="bg-white border border-gray-300 p-4 rounded-xl mt-6">
+              <h3 className="text-lg font-semibold mb-4">Edit Category: {editingCategory.name}</h3>
+              <input
+                type="text"
+                className="input-field mb-3"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+              <select
+                multiple
+                className="input-field h-40"
+                value={editSubAdmins}
+                onChange={(e) =>
+                  setEditSubAdmins(Array.from(e.target.selectedOptions, (o) => o.value))
+                }
+              >
+                {subAdmins.map((admin) => (
+                  <option key={admin.id} value={admin.id}>
+                    {admin.name || admin.email}
+                  </option>
+                ))}
+              </select>
+              <div className="flex gap-4 mt-4">
+                <button className="btn-primary" onClick={handleSaveEdit}>Save</button>
+                <button className="btn-danger" onClick={() => setEditingCategory(null)}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+
           <AllowedYearsControl />
         </div>
       </ProtectedRoute>
