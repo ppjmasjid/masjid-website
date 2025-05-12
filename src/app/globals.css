@@ -70,3 +70,7 @@ body {
 .btn-yellow {
   @apply w-full md:w-48 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 rounded-md transition;
 }
+/* In your global.css or Tailwind's globals */
+.react-select-container {
+  min-width: 100%;
+}

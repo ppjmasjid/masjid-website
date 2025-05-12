@@ -66,6 +66,19 @@ const data: SimpleCard[] = [
     href: "/DonationPage",
   
   },
+  {
+    title: "Nashid",
+    description: "Listen to beautiful Islamic songs.",
+    href: "/nashid",
+  
+  },
+  {
+    title: "Library",
+    description: "Explore our collection of Islamic books and resources.",
+    href: "/library",
+  
+  },
+  
 ];
 
 export default function Home() {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/utils/firestore';
+import { getAuth } from 'firebase/auth';
 import {
   addDoc,
   collection,
@@ -76,7 +77,8 @@ export default function SpecialCollectionForm({ subAdminId }: SpecialCollectionF
         date,
         category,
         commitment,
-        isPaid: !commitment, // if no commitment, mark as paid
+        isPaid: commitment ? false : true,
+        // if no commitment, mark as paid
         subAdminId,
         createdAt: Timestamp.now(),
       });
@@ -142,16 +144,22 @@ export default function SpecialCollectionForm({ subAdminId }: SpecialCollectionF
   };
 
   const fetchCategories = async () => {
-    const snapshot = await getDocs(collection(db, 'specialDonationCategories'));
-    const data = snapshot.docs.map((doc) => {
-      const categoryData = doc.data() as Omit<Category, 'id'>;
-      return {
-        id: doc.id,
-        ...categoryData,
-      };
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const snap = await getDocs(collection(db, 'specialDonationCategories'));
+    const filteredCategories: Category[] = [];
+    snap.forEach((doc) => {
+      const data = doc.data();
+      if (data?.name && Array.isArray(data.subAdminIds) && data.subAdminIds.includes(user.uid)) {
+        filteredCategories.push({ id: doc.id, name: data.name });
+      }
     });
-    setCategories(data);
+    setCategories(filteredCategories);
+
   };
+
 
   const exportToCSV = () => {
     const rows = [
@@ -242,14 +250,25 @@ export default function SpecialCollectionForm({ subAdminId }: SpecialCollectionF
         </label>
       </div>
 
-      <button
-        className={`${
-          editId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'
-        } text-white px-6 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-green-600`}
-        onClick={handleAddOrUpdate}
-      >
-        {editId ? 'Update Donor' : 'Add Special Donor'}
-      </button>
+      <div className="flex gap-4 mt-4">
+  <button
+    className={`${editId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'
+      } text-white px-6 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-green-600`}
+    onClick={handleAddOrUpdate}
+  >
+    {editId ? 'Update Donor' : 'Add Special Donor'}
+  </button>
+
+  {editId && (
+    <button
+      onClick={resetForm}
+      className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+    >
+      Cancel
+    </button>
+  )}
+</div>
+
 
       {/* Filter */}
       <div className="mt-8 mb-4">
@@ -319,6 +338,7 @@ export default function SpecialCollectionForm({ subAdminId }: SpecialCollectionF
           </ul>
         </div>
       )}
+    
     </div>
   );
 }

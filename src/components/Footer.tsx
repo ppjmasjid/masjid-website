@@ -74,8 +74,8 @@ export default function Footer() {
             {/* Bottom Copyright Section */}
             <div className="bg-gray-800 text-gray-400 py-4 px-4 md:px-8 text-sm">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <p>© {new Date().getFullYear()} GCMIS. All Rights Reserved.</p>
-                    <p>Design & developed by M360ICT</p>
+                    <p>© {new Date().getFullYear()} PPJM. All Rights Reserved.</p>
+                    <p>Design & developed by <a href="/imam">MOTASIM BILLAH SIAM</a></p>
                 </div>
             </div>
 

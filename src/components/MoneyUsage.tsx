@@ -38,19 +38,19 @@ export default function MoneyUsage() {
 
     useEffect(() => {
         const auth = getAuth();
-
+    
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 await fetchSubAdminName(user.uid);
+                await fetchCategories(user.uid);
+                await fetchBalances();
+                await fetchUsageRecords();
             }
         });
-
-        fetchCategories();
-        fetchBalances();
-        fetchUsageRecords();
-
-        return () => unsubscribe(); // cleanup listener
+    
+        return () => unsubscribe(); // cleanup
     }, []);
+    
 
     const fetchSubAdminName = async (uid: string) => {
         const docRef = doc(db, 'users', uid);
@@ -61,16 +61,18 @@ export default function MoneyUsage() {
         }
     };
 
-    const fetchCategories = async () => {
-        const snap = await getDocs(collection(db, 'specialDonationCategories'));
-        const cats: string[] = [];
-        snap.forEach((doc) => {
-            const data = doc.data();
-            if (data?.name) cats.push(data.name);
-        });
-        setCategoryList(cats);
-    };
-
+    const fetchCategories = async (uid: string) => {
+            const snap = await getDocs(collection(db, 'specialDonationCategories'));
+            const cats: string[] = [];
+            snap.forEach((doc) => {
+                const data = doc.data();
+                if (data?.name && Array.isArray(data.subAdminIds) && data.subAdminIds.includes(uid)) {
+                    cats.push(data.name);
+                }
+            });
+            setCategoryList(cats);
+        };
+    
     const fetchBalances = async () => {
         const snap = await getDocs(collection(db, 'specialCollections'));
         const paid: Record<string, number> = {};
