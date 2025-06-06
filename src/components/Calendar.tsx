@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
+// Type definition for a single calendar day
 type CalendarDay = {
   date: {
     gregorian: { date: string; day: string; month: { en: string; number: number }; year: string }
@@ -32,7 +33,7 @@ export default function IslamicCalendar() {
         )
         setCalendar(res.data.data || [])
         setError(null)
-      } catch (err) {
+      } catch {
         setError('Failed to load calendar data.')
         setCalendar([])
       } finally {
@@ -66,54 +67,50 @@ export default function IslamicCalendar() {
       ? calendar[0]?.date?.hijri?.month?.en + ' ' + calendar[0]?.date?.hijri?.year
       : ''
 
-  const dayNames = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa']
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const today = new Date()
 
   return (
-    <div className="max-w-5xl mx-auto p-4 bg-white shadow rounded-xl">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+    <div className="max-w-6xl mx-auto p-4 bg-gradient-to-br from-emerald-100 to-white shadow-lg rounded-xl border border-emerald-300">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-2">
         <button
           onClick={handlePrevMonth}
-          className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded mb-2 sm:mb-0"
+          className="bg-green-100 hover:bg-green-200 text-green-800 px-4 py-2 rounded-md"
         >
-          ◀
+          ◀ Previous
         </button>
         <div className="text-center">
-          <h2 className="text-2xl font-bold">
+          <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
             {new Date(year, month - 1).toLocaleString('default', {
               month: 'long',
               year: 'numeric',
-            })}{' '}
-            | <span className="text-green-700">{hijriHeader}</span>
+            })}
           </h2>
+          <p className="text-green-700 font-medium">{hijriHeader}</p>
         </div>
         <button
           onClick={handleNextMonth}
-          className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
+          className="bg-green-100 hover:bg-green-200 text-green-800 px-4 py-2 rounded-md"
         >
-          ▶
+          Next ▶
         </button>
       </div>
 
-      {/* Content */}
-      {loading && <p className="text-center">Loading calendar...</p>}
-      {error && <p className="text-red-600 text-center">{error}</p>}
+      {/* Calendar Grid */}
+      {loading && <p className="text-center text-sm text-gray-500">Loading calendar...</p>}
+      {error && <p className="text-center text-red-600 font-medium">{error}</p>}
 
       {!loading && !error && (
         <>
-          {/* Day Names Row */}
-          <div className="grid grid-cols-7 text-center font-bold mb-2">
+          <div className="grid grid-cols-7 gap-1 text-center text-sm font-bold text-green-800 mb-2">
             {dayNames.map((day, idx) => (
-              <div key={idx} className="text-gray-700">
-                {day}
-              </div>
+              <div key={idx} className="py-1">{day}</div>
             ))}
           </div>
 
-          {/* Dates */}
-          <div className="grid grid-cols-7 gap-2 text-center">
-            {/* Padding for first day of month */}
+          <div className="grid grid-cols-7 gap-2">
+            {/* Empty cells for the first week */}
             {calendar.length > 0 &&
               Array(
                 new Date(
@@ -127,39 +124,29 @@ export default function IslamicCalendar() {
 
             {calendar.map((dayObj, i) => {
               const { gregorian, hijri } = dayObj.date
-              const holidays = hijri?.holidays || []
-
               const isToday =
                 parseInt(gregorian.day) === today.getDate() &&
                 parseInt(gregorian.month.number.toString()) === today.getMonth() + 1 &&
                 parseInt(gregorian.year) === today.getFullYear()
 
-              const showHijriMonthName =
-                i === 0 ||
-                calendar[i - 1]?.date?.hijri?.month?.en !== hijri?.month?.en
-
               return (
                 <div
                   key={i}
-                  className={`relative p-2 border rounded-lg shadow-sm ${
+                  className={`relative flex flex-col items-center justify-center px-2 py-3 text-sm border rounded-lg shadow-sm transition-all duration-200 ${
                     isToday
-                      ? 'bg-green-200 border-green-500 animate-pulse ring-2 ring-green-400'
-                      : 'bg-gray-50'
+                      ? 'bg-green-100 border-green-400 ring-2 ring-green-300'
+                      : 'bg-white hover:bg-green-50'
                   }`}
                 >
-                  <div className="text-lg font-bold">{gregorian.day}</div>
-
-                  <div className="mt-1 text-lg text-green-700">{hijri.day}</div>
-
-                  {showHijriMonthName && (
-                    <div className="absolute bottom-1 left-1 right-1 text-xs text-blue-700">
-                      {hijri.month.en} {hijri.year}
-                    </div>
-                  )}
-
-                  {holidays.length > 0 && (
-                    <div className="text-xs text-red-600 mt-1">
-                      {holidays.join(', ')}
+                  <div className="font-bold text-gray-800 text-base leading-none">
+                    {gregorian.day}
+                  </div>
+                  <div className="text-green-700 mt-1 text-sm leading-none">
+                    {hijri.day}
+                  </div>
+                  {hijri.holidays.length > 0 && (
+                    <div className="text-red-500 text-xs mt-1 text-center">
+                      {hijri.holidays.join(', ')}
                     </div>
                   )}
                 </div>
@@ -168,6 +155,8 @@ export default function IslamicCalendar() {
           </div>
         </>
       )}
+
+      
     </div>
   )
 }

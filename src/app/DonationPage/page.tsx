@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
- import Footer from "@/components/Footer";
 import Image from "next/image";
 
 const quotes = [
@@ -26,7 +24,6 @@ const DonationPage: React.FC = () => {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const router = useRouter();
 
- 
   useEffect(() => {
     const interval = setInterval(() => {
       setQuoteIndex((prev) => (prev + 1) % quotes.length);
@@ -44,52 +41,59 @@ const DonationPage: React.FC = () => {
   const handlePrint = () => window.print();
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-500">
-
-      <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
+    <div className="min-h-screen  bg-gradient-to-b from-green-50 to-white  text-green-900   dark:text-green-200 transition-colors duration-700 font-serif">
+      <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-blue-800 dark:text-blue-400">
-            🕌 Donate to Gulshan Central Masjid
+        <div className="text-center border-b-4 border-green-700 pb-6">
+          <h1 className="text-5xl font-extrabold text-green-500 dark:text-green-300 tracking-wide drop-shadow-md">
+            🕌 Donate to Patuarpur jame Masjid
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
+          <p className="mt-3 text-lg text-green-700 dark:text-green-200 italic">
             Help us maintain and expand our services to the community.
           </p>
         </div>
 
         {/* Controls */}
-        <div className="flex justify-end gap-2 print:hidden">
+        <div className="flex justify-end gap-3 print:hidden">
           <button
             onClick={toggleDarkMode}
-            className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+            className="px-5 py-2 rounded-lg bg-green-300 dark:bg-green-700 text-green-900 dark:text-green-100 font-semibold shadow hover:bg-green-300 dark:hover:bg-green-600 transition"
+            aria-label="Toggle dark mode"
           >
             {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
           </button>
           <button
             onClick={handlePrint}
-            className="px-4 py-2 rounded bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+            className="px-5 py-2 rounded-lg bg-green-800 dark:bg-green-600 text-white font-semibold shadow hover:bg-green-900 dark:hover:bg-green-700 transition"
+            aria-label="Print or save as PDF"
           >
             🖨️ Print / Save as PDF
           </button>
         </div>
 
         {/* Donation Methods */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+        <section className="space-y-8">
+          <h2 className="text-3xl font-bold text-green-800 dark:text-green-300 border-l-8 border-green-700 pl-4 mb-6 drop-shadow-sm">
             💳 Ways of Donating
           </h2>
 
           {[
             {
               title: "📞 By Telephone",
-              content: <p>Call: <span className="font-mono">88-02222263243</span></p>,
+              content: (
+                <p className="text-green-900 dark:text-green-100">
+                  Call: <span className="font-mono bg-green-900 dark:bg-green-800 px-1 rounded">{`88-02222263243`}</span>
+                </p>
+              ),
             },
             {
               title: "💵 By Cash",
               content: (
                 <>
-                  <p>Pay at the Reception:</p>
-                  <p>Gulshan Central Masjid, 111, Gulshan Avenue, Gulshan Model Town, Dhaka-1212</p>
+                  <p className="text-green-900 dark:text-green-100">Pay at the Reception:</p>
+                  <p className="text-green-800 dark:text-green-200 italic">
+                    Gulshan Central Masjid, 111, Gulshan Avenue, Gulshan Model Town, Dhaka-1212
+                  </p>
                 </>
               ),
             },
@@ -97,44 +101,65 @@ const DonationPage: React.FC = () => {
               title: "✉️ By Post",
               content: (
                 <>
-                  <p>Cheque Payable to: <strong>‘Gulshan Central Masjid & Iddgah Society’</strong></p>
-                  <p>Address: 111, Gulshan Avenue, Gulshan Model Town, Dhaka-1212</p>
+                  <p className="text-green-900 dark:text-green-100">
+                    Cheque Payable to:{" "}
+                    <strong className="underline decoration-green-600 dark:decoration-green-400">
+                      ‘Gulshan Central Masjid & Iddgah Society’
+                    </strong>
+                  </p>
+                  <p className="text-green-800 dark:text-green-200 italic">
+                    Address: 111, Gulshan Avenue, Gulshan Model Town, Dhaka-1212
+                  </p>
                 </>
               ),
             },
             {
               title: "🏦 By Bank Transfer",
               content: (
-                <ul className="list-disc pl-6 space-y-1">
-                  <li><strong>Account No:</strong> 00713100065688</li>
-                  <li><strong>SWIFT:</strong> EXBKBDDHX007</li>
-                  <li><strong>Bank:</strong> Export Import Bank of Bangladesh Limited</li>
-                  <li><strong>Branch:</strong> Gulshan Branch, Dhaka</li>
+                <ul className="list-disc pl-6 space-y-1 text-green-900 dark:text-green-100">
+                  <li>
+                    <strong>Account No:</strong> 00713100065688
+                  </li>
+                  <li>
+                    <strong>SWIFT:</strong> EXBKBDDHX007
+                  </li>
+                  <li>
+                    <strong>Bank:</strong> Export Import Bank of Bangladesh Limited
+                  </li>
+                  <li>
+                    <strong>Branch:</strong> Gulshan Branch, Dhaka
+                  </li>
                 </ul>
               ),
             },
           ].map((method, idx) => (
-            <div key={idx} className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 shadow">
-              <h3 className="font-bold text-lg">{method.title}</h3>
-              <div className="mt-1 text-gray-700 dark:text-gray-200">{method.content}</div>
+            <div
+              key={idx}
+              className=" dark:bg-green-800 rounded-2xl p-5 shadow-lg border border-green-200 dark:border-green-700 transition"
+            >
+              <h3 className="font-bold text-xl text-green-700 dark:text-green-300 mb-2">{method.title}</h3>
+              <div>{method.content}</div>
             </div>
           ))}
         </section>
 
         {/* QR Code */}
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold text-pink-800 dark:text-pink-400">
+        <section className="space-y-6">
+          <h2 className="text-3xl font-bold text-green-800 dark:text-green-300 border-l-8 border-green-700 pl-4 mb-6 drop-shadow-sm">
             📱 Mobile Payment (QR Code)
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             {[
               { src: "/images/bkash.png", alt: "bKash QR", label: "bKash" },
               { src: "/images/nagad.png", alt: "Nagad QR", label: "Nagad" },
             ].map((qr, i) => (
-              <div key={i} className="flex flex-col items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-4">
+              <div
+                key={i}
+                className="flex flex-col items-center bg-white dark:bg-green-900 border border-green-300 dark:border-green-600 rounded-3xl p-6 shadow-md"
+              >
                 <Image src={qr.src} alt={qr.alt} width={160} height={160} />
-                <p className="mt-2 text-center text-gray-800 dark:text-gray-200">
-                  Scan to donate via <strong>{qr.label}</strong>
+                <p className="mt-3 text-center text-green-900 dark:text-green-100 font-semibold">
+                  Scan to donate via <span className="underline">{qr.label}</span>
                 </p>
               </div>
             ))}
@@ -142,16 +167,17 @@ const DonationPage: React.FC = () => {
         </section>
 
         {/* Motivation Section */}
-        <section className="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-600 rounded-xl p-6 transition duration-500">
-          <h2 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">
+        <section className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 rounded-3xl p-8 shadow-inner transition duration-700">
+          <h2 className="text-3xl font-bold text-green-900 dark:text-green-300 mb-6 drop-shadow-md">
             🌙 Motivation from the Qur’an & Sunnah
           </h2>
-          <blockquote className="italic border-l-4 pl-4 border-green-500 text-gray-800 dark:text-gray-200 transition">
+          <blockquote className="italic border-l-8 pl-6 border-green-600 dark:border-green-400 text-green-900 dark:text-green-100 leading-relaxed tracking-wide">
             {quotes[quoteIndex].text}
-            <span className="block text-right font-semibold mt-2">{quotes[quoteIndex].source}</span>
+            <span className="block text-right font-semibold mt-4 text-green-700 dark:text-green-200">
+              {quotes[quoteIndex].source}
+            </span>
           </blockquote>
         </section>
-        <Footer/>
       </div>
     </div>
   );

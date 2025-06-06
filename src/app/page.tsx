@@ -1,89 +1,24 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import Navbar from "@/components/Navbar";
-import Slideshow from "@/components/Slideshow";
  
+import Slideshow from "@/components/Slideshow";
+
 import PrayerTimes from "@/components/PrayerTime";
 import ServiceSection from "@/components/ServiceSection";
-import Footer from "@/components/Footer";
-import Calendar  from "@/components/Calendar";
-import NoticeCard  from "@/components/NoticeCard";
+ 
+import Calendar from "@/components/Calendar";
+import NoticeCard from "@/components/NoticeCard";
 
-import { Amiri } from 'next/font/google';
+import { Amiri } from "next/font/google";
 import AyahHadisRotator from "@/components/AyahHadisRotator";
-const amiri = Amiri({ subsets: ['arabic'], weight: '400' });
-import CardGrid, { SimpleCard } from "@/components/CardGrid";
+import CardGrid from "@/components/CardGrid";
 
-
-const data: SimpleCard[] = [
-
-  {
-    title: "About Masjid",
-    description: " Learn more about our mosque and its history.",
-    href: " /about",
-    external: true,
-    // image: "/images/donate.jpg",
-  },
-  {
-    title: "About Masjid Committee", 
-    description: "Know more about our committee members.",
-    href: "/committee",
-    // image: "/images/prayer.jpg",
-  },  
-  {
-    title: "Contact Us",
-    description: "Feel free to reach out to us.",
-    href: "/contact",
-    // image: "/images/prayer.jpg",
-  },
-  {
-    title: "About Our Imam",
-    description: "Our Imam is a dedicated and knowledgeable leader.",
-    href: "/imam",
-  
-  },
-  {
-    title: "Notice Board",
-    description: "Stay updated with the latest announcements.",
-    href: "/notices",
-  
-  },
-  {
-    title: "Our Community Members",
-    description: "Meet our vibrant community members.",
-    href: "/provider",
-  
-  },
-  {
-    title: "Dashboard",
-    description: "Our Financial Accounts and Reports are open for all.",
-    href: "/dashboard",
-  
-  },
-  {
-    title: "Donate",
-    description: "Donate to support our mosque and its activities.",
-    href: "/DonationPage",
-  
-  },
-  {
-    title: "Nashid",
-    description: "Listen to beautiful Islamic songs.",
-    href: "/nashid",
-  
-  },
-  {
-    title: "Library",
-    description: "Explore our collection of Islamic books and resources.",
-    href: "/library",
-  
-  },
-  
-];
+const amiri = Amiri({ subsets: ["arabic"], weight: "400" });
 
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
-  const [navHeight, setNavHeight] = useState(0);
+ 
 
   useEffect(() => {
     const savedMode = localStorage.getItem("darkMode");
@@ -96,41 +31,74 @@ export default function Home() {
   };
 
   return (
-    
-    <div className={`${amiri.className} ${darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-black"} min-h-screen`}>
-     
-     
-     
+    <div
+      className={`${amiri.className} ${
+        darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
+      } min-h-screen transition-colors duration-700 ease-in-out`}
+    >
       {/* Global Dark Mode Toggle */}
-      <div className="fixed top-4 right-4 z-10">
+      <div className="fixed top-4 right-4 z-20">
         <button
           onClick={toggleDarkMode}
-          className="p-2 bg-gray-600 rounded-full hover:bg-gray-700 transition"
+          aria-label="Toggle Dark Mode"
+          className="p-3 bg-green-700 dark:bg-yellow-600 rounded-full shadow-lg hover:bg-green-800 dark:hover:bg-yellow-500 transition focus:outline-none focus:ring-4 focus:ring-green-400 dark:focus:ring-yellow-300"
         >
           {darkMode ? "🌙 Dark Mode" : "💡 Light Mode"}
         </button>
       </div>
 
-      <Navbar setNavHeight={setNavHeight} darkMode={darkMode} />
+      {/* Navbar */}
+       
 
-      <Slideshow navHeight={navHeight} />
-
-       <AyahHadisRotator />
-      <div className="flex flex-col lg:flex-row gap-6">
-        
-
-        {/* Islamic Calendar */}
-        <div className="lg:w-2/3 w-full">
-          <Calendar />
-        </div>
-        {/* Prayer Times */}
-        <div className="lg:w-1/3 w-full">
-          <PrayerTimes />
-        </div>
+      {/* Slideshow */}
+      <div className="relative z-10">
+        <Slideshow />
       </div>
-      <NoticeCard />
-      <CardGrid cards={data} />;
-      <Footer />
+
+      {/* Ayah & Hadis Rotator */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <AyahHadisRotator />
+      </div>
+
+      {/* Calendar & Prayer Times Container */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-8 mb-12">
+        {/* Calendar */}
+        <section
+          aria-label="Islamic Calendar"
+          className="lg:w-2/3 w-full rounded-3xl bg-gradient-to-tr from-green-50 via-green-100 to-green-200 dark:from-green-900 dark:via-green-800 dark:to-green-900 shadow-xl p-6"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at top left, #d1e7dd 10%, transparent 30%), radial-gradient(circle at bottom right, #badbcc 20%, transparent 40%)",
+          }}
+        >
+          <Calendar />
+        </section>
+
+        {/* Prayer Times */}
+        <section
+          aria-label="Prayer Times"
+          className="lg:w-1/3 w-full rounded-3xl bg-gradient-to-tr from-yellow-50 via-yellow-100 to-yellow-200 dark:from-yellow-900 dark:via-yellow-800 dark:to-yellow-900 shadow-xl p-6"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at top left, #fff3cd 10%, transparent 30%), radial-gradient(circle at bottom right, #ffe8a1 20%, transparent 40%)",
+          }}
+        >
+          <PrayerTimes />
+        </section>
+      </div>
+
+      {/* Notice Board */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        <NoticeCard />
+      </div>
+
+      {/* Card Grid (Services / Features) */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <CardGrid />
+      </div>
+
+      {/* Footer */}
+     
     </div>
   );
 }

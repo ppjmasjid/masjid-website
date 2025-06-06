@@ -1,17 +1,23 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const ayahs = [
-  "Indeed, with hardship comes ease. — Qur'an 94:6",
-  "Allah! There is no deity except Him, the Ever-Living. — Qur'an 2:255",
-  "So remember Me; I will remember you. — Qur'an 2:152",
+type Item = {
+  text: string;
+  source: string;
+};
+
+const ayahs: Item[] = [
+  { text: "Indeed, with hardship comes ease.", source: "— Qur'an 94:6" },
+  { text: "Allah! There is no deity except Him, the Ever-Living.", source: "— Qur'an 2:255" },
+  { text: "So remember Me; I will remember you.", source: "— Qur'an 2:152" },
 ];
 
-const hadiths = [
-  "The best among you are those who learn the Qur’an and teach it. — Bukhari",
-  "Speak good or remain silent. — Bukhari",
-  "A smile is charity. — Tirmidhi",
+const hadiths: Item[] = [
+  { text: "The best among you are those who learn the Qur’an and teach it.", source: "— Bukhari" },
+  { text: "Speak good or remain silent.", source: "— Bukhari" },
+  { text: "A smile is charity.", source: "— Tirmidhi" },
 ];
 
 export default function AyahHadithRotator() {
@@ -27,29 +33,30 @@ export default function AyahHadithRotator() {
   }, []);
 
   const currentList = showAyah ? ayahs : hadiths;
-  const content = currentList[index % currentList.length];
-  const label = showAyah ? "Ayah" : "Hadith";
+  const item = currentList[index % currentList.length];
+
+  const title = showAyah
+    ? "🌿 Motivation from the Qur’an"
+    : "📜 Motivation from the Sunnah";
 
   return (
-    <div className="flex items-center justify-center px-4 py-8 sm:py-12 bg-white dark:bg-gray-900">
-      <motion.div
-        layout
-        className="w-full max-w-xl p-6 text-center rounded-2xl shadow-md bg-gray-50 dark:bg-gray-800"
-      >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${label}-${index}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.5 }}
-            layout
-          >
-            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-100 mb-2">{label}</h2>
-            <p className="text-base text-gray-800 dark:text-gray-300">{content}</p>
-          </motion.div>
-        </AnimatePresence>
-      </motion.div>
-    </div>
+    <section className="w-full bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-600 rounded-xl p-6 transition duration-500">
+      <h2 className="text-2xl font-semibold text-green-800 dark:text-green-300 mb-4">
+        {title}
+      </h2>
+      <AnimatePresence mode="wait">
+        <motion.blockquote
+          key={`${title}-${index}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.5 }}
+          className="italic border-l-4 pl-4 border-green-500 text-gray-800 dark:text-gray-200 transition"
+        >
+          {item.text}
+          <span className="block text-right font-semibold mt-2">{item.source}</span>
+        </motion.blockquote>
+      </AnimatePresence>
+    </section>
   );
 }

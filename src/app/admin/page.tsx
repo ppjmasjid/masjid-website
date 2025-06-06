@@ -356,7 +356,7 @@ export default function AdminPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-gray-100 to-gray-200 p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen text-black bg-gradient-to-tr from-gray-100 to-gray-200 p-4 sm:p-6 md:p-8">
       <ProtectedRoute role="admin">
         <div className="max-w-7xl mx-auto space-y-12">
           <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-8">

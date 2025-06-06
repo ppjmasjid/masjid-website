@@ -1,82 +1,68 @@
 "use client";
 import Image from 'next/image';
-
-
-import Breadcrumb from '@/components/Breadcrumb';
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import PageHeader from "@/components/PageHeader";
 import React, { useState } from 'react';
+
 const AboutPage = () => {
   const [user, setUser] = useState(null);
+
   return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="container mx-auto px-4 py-10">
-     <Navbar className="fixed top-0 left-0 w-full z-50 bg-gray-600" />
-  <Breadcrumb />
-  <PageHeader location="contact" />
-
-</div>
-      
-
-     
+    <div className="  mx-auto px-4 py-10 bg-gradient-to-br from-green-50 via-white to-green-100 text-[#0f172a] rounded-xl shadow-lg">
       {/* History Section */}
-      <section className="flex flex-col-reverse md:flex-row items-center space-x-6 mb-16">
+      <section className="flex flex-col-reverse md:flex-row items-center md:space-x-6 mb-16 border border-green-200 p-6 rounded-lg bg-white shadow-md">
         <div className="flex-1">
-          <h2 className="text-4xl font-semibold text-center md:text-left mb-4">History</h2>
-          <p className="text-lg text-gray-700">
+          <h2 className="text-4xl font-bold text-green-800 text-center md:text-left mb-4 mt-5 border-b-2 border-green-400 pb-2">📜 History</h2>
+          <p className="text-lg text-gray-700 leading-relaxed">
             The mosque was established in [year]. Its construction was a major milestone for the community, aiming to provide a space for worship, reflection, and community gathering. Over the years, it has grown to become a central part of our spiritual and social lives.
           </p>
         </div>
         <div className="flex-1">
           <Image
-            src="/images/history.jpg" // Adjust the image path as needed
+            src="/images/history.jpg"
             alt="History"
             width={500}
             height={300}
-            className="rounded-lg shadow-md"
+            className="rounded-lg shadow-lg ring-2 ring-green-400"
           />
         </div>
       </section>
 
       {/* Vision Section */}
-      <section className="flex flex-col md:flex-row items-center space-x-6 mb-16">
+      <section className="flex flex-col md:flex-row items-center md:space-x-6 mb-16 border border-green-200 p-6 rounded-lg bg-white shadow-md">
         <div className="flex-1">
           <Image
-            src="/images/vision.jpg" // Adjust the image path as needed
+            src="/images/vision.jpg"
             alt="Vision"
             width={500}
             height={300}
-            className="rounded-lg shadow-md"
+            className="rounded-lg shadow-lg ring-2 ring-green-400"
           />
         </div>
         <div className="flex-1">
-          <h2 className="text-4xl font-semibold text-center md:text-left mb-4">Vision</h2>
-          <p className="text-lg text-gray-700">
+          <h2 className="text-4xl mt-5 font-bold text-green-800 text-center md:text-left mb-4 border-b-2 border-green-400 pb-2">🌙 Vision</h2>
+          <p className="text-lg text-gray-700 leading-relaxed">
             Our vision is to foster a strong and vibrant community that lives by the teachings of Islam, ensuring a space for spiritual growth, knowledge, and service to humanity. We aim to be a beacon of light and a place of tranquility for all.
           </p>
         </div>
       </section>
 
       {/* Mission Section */}
-      <section className="flex flex-col-reverse md:flex-row items-center space-x-6">
+      <section className="flex flex-col-reverse md:flex-row items-center md:space-x-6 border border-green-200 p-6 rounded-lg bg-white shadow-md">
         <div className="flex-1">
-          <h2 className="text-4xl font-semibold text-center md:text-left mb-4">Mission</h2>
-          <p className="text-lg text-gray-700">
+          <h2 className="text-4xl font-bold text-green-800 mt-4 text-center md:text-left mb-4 border-b-2 border-green-400 pb-2">🤲 Mission</h2>
+          <p className="text-lg text-gray-700 leading-relaxed">
             Our mission is to provide a welcoming environment for worship, community development, and educational programs. We strive to build a place that fosters spiritual, intellectual, and social growth among our congregation.
           </p>
         </div>
         <div className="flex-1">
           <Image
-            src="/images/mission.jpg" // Adjust the image path as needed
+            src="/images/mission.jpg"
             alt="Mission"
             width={500}
             height={300}
-            className="rounded-lg shadow-md"
+            className="rounded-lg shadow-lg ring-2 ring-green-400"
           />
         </div>
       </section>
-      <Footer />
     </div>
   );
 };

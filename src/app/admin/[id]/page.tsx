@@ -212,7 +212,7 @@ export default function SubAdminPanel() {
 
   return (
     <ProtectedRoute role="sub-admin">
-      <div className="min-h-screen bg-gradient-to-tr from-gray-100 to-white p-4 sm:p-6">
+      <div className=" text-black  min-h-screen bg-gradient-to-tr from-gray-100 to-white p-4 sm:p-6">
         <div className="max-w-6xl mx-auto space-y-8">
           <h1 className="text-3xl font-extrabold text-center text-blue-800">Sub-Admin Panel</h1>
 

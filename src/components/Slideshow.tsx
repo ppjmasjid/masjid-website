@@ -5,7 +5,7 @@ import Image from "next/image";
 
 const images = ["/images/mq1.png","/images/mq2.png",];
 
-const Slideshow = ({ navHeight }: { navHeight: number }) => {
+const Slideshow = () => {
   const [currentImage, setCurrentImage] = useState(0);
 
   // Auto change every 3 seconds
@@ -28,7 +28,7 @@ const Slideshow = ({ navHeight }: { navHeight: number }) => {
   return (
     <div
       className="relative w-full h-64 sm:h-80 md:h-[28rem] overflow-hidden rounded-lg shadow-lg"
-      style={{ marginTop: `${navHeight}px` }}
+    
     >
       {/* Image */}
       <div className="w-full h-full relative">

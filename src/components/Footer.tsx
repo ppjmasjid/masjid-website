@@ -23,9 +23,9 @@ export default function Footer() {
     };
 
     return (
-        <footer className=" text-white">
+        <footer className=" text-white bg-gradient-to-b from-emerald-900 to-emerald-800  ">
             {/* Main Footer Section */}
-            <div className="max-w-7xl mx-auto py-10 px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className=" max-w-7xl mx-auto py-10 px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Left Column: Logo and Social Icons */}
                 <div>
                     {/* Logo */}
@@ -61,7 +61,7 @@ export default function Footer() {
 
                 {/* Right Column: Donation Now */}
                 <div>
-                    <h2 className="text-xl font-bold mb-4">Donation Now</h2>
+                    <h2 className="text-xl font-bold mb-4">Donate Now</h2>
                     <p className="text-gray-400 leading-relaxed">
                         Zakat is an Islamic financial term. As one of the pillars of the faith, it requires all Muslims to donate a portion of their wealth to charity.
                     </p>
@@ -72,7 +72,7 @@ export default function Footer() {
             </div>
 
             {/* Bottom Copyright Section */}
-            <div className="bg-gray-800 text-gray-400 py-4 px-4 md:px-8 text-sm">
+            <div className="bg-gradient-to-b from-emerald-900 to-emerald-900  text-gray-400 py-4 px-4 md:px-8 text-sm">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <p>© {new Date().getFullYear()} PPJM. All Rights Reserved.</p>
                     <p>Design & developed by <a href="/imam">MOTASIM BILLAH SIAM</a></p>

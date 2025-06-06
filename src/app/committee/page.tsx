@@ -2,11 +2,6 @@
 
 import Image from 'next/image'
 
-import Breadcrumb from '@/components/Breadcrumb';
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import PageHeader from "@/components/PageHeader";
-
 const topMembers = [
   {
     name: 'Mohammad Zahid',
@@ -64,44 +59,45 @@ const otherMembers = [
 ]
 
 const MemberCard = ({ member }: { member: any }) => (
-  <div className="flex flex-col items-center bg-white p-4 rounded-2xl shadow-md">
+  <div className="flex flex-col items-center bg-white p-4 rounded-2xl shadow-md border border-green-200 hover:shadow-lg transition">
     <Image
       src={member.image}
       alt={member.name}
       width={100}
       height={100}
-      className="rounded-full object-cover mb-2"
+      className="rounded-full object-cover mb-2 border-4 border-green-500"
     />
-    <h3 className="font-semibold">{member.name}</h3>
-    <p className="text-sm text-gray-500">{member.position}</p>
+    <h3 className="font-semibold text-green-700 text-lg">{member.name}</h3>
+    <p className="text-sm text-gray-600 italic">{member.position}</p>
   </div>
 )
 
 export default function CommitteePage() {
-  return (<>
-    <Navbar className="fixed top-0 left-0 w-full z-50 bg-gray-600" />
-    <Breadcrumb />
-    <PageHeader location="contact" />
+  return (
+    <div className="bg-gradient-to-b from-green-50 to-white min-h-screen py-10 px-4">
+      <div className="max-w-6xl mx-auto">
 
-    <div className="max-w-6xl mx-auto px-4 py-10">
-    
-      <h1 className="text-3xl font-bold text-center mb-10">Masjid Committee</h1>
+        <h1 className="text-4xl font-bold text-center text-green-800 mb-2" style={{ fontFamily: 'serif' }}>
+          Masjid Committee
+        </h1>
+        <div className="text-center mb-10 text-green-600">
+          <p className="text-md italic">Serving the community with sincerity and faith</p>
+        </div>
 
-      {/* Top Two Members */}
-      <div className="flex flex-col sm:flex-row justify-center gap-10 mb-10">
-        {topMembers.map((member, index) => (
-          <MemberCard key={index} member={member} />
-        ))}
+        {/* Top Two Members */}
+        <div className="flex flex-col sm:flex-row justify-center gap-10 mb-12">
+          {topMembers.map((member, index) => (
+            <MemberCard key={index} member={member} />
+          ))}
+        </div>
+
+        {/* Other Members Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {otherMembers.map((member, index) => (
+            <MemberCard key={index} member={member} />
+          ))}
+        </div>
       </div>
-
-      {/* Other Members Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {otherMembers.map((member, index) => (
-          <MemberCard key={index} member={member} />
-        ))}
-      </div>
-      <Footer />
     </div>
-    </>
   )
 }
