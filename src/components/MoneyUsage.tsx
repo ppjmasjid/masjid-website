@@ -23,7 +23,7 @@ interface UsageRecord {
     createdAt?: string;
 }
 
-const imgbbAPIKey = '40e58544cb5b668e512765223d0f98eb';
+const imgbbAPIKey = 'f7907af46aa2957d2f64c92fb55f3794';
 
 export default function MoneyUsage() {
     const [categoryList, setCategoryList] = useState<string[]>([]);

@@ -56,8 +56,8 @@ const Navbar = ({ setNavHeight, className }: { setNavHeight?: (height: number) =
     {
       label: "Learn Quran",
       submenu: [
-        { label: "With text course", link: "/learnquran/" },
-        { label: "With video course", link: "/learnquranwithvideo/" },
+        { label: "With text course", link: "https://muslimshub.vercel.app/learnquran/" },
+        { label: "With video course", link: "https://muslimshub.vercel.app/learnquranwithvideo/" },
       ],
     },
 
@@ -67,19 +67,19 @@ const Navbar = ({ setNavHeight, className }: { setNavHeight?: (height: number) =
    
    
 
-
+{ label: "Read Quran", link: "https://muslimshub.vercel.app/quran" },
     {
       label: "Useful links",
       submenu: [
 
 
-        { label: "Nashid", link: "/nashid" },
-        { label: "Rukaya", link: "/rokayah" },
-        { label: "Islamic Q&A", link: "/qa" },
-        { label: "Large Online Library", link: "/library" },
-        { label: " Namaj & deeds Tracker", link: "/tracker" },
-         { label: "Blog", link: "/blogs" },
-          { label: "Read Quran", link: "/quran" },
+        { label: "Nashid", link: "https://muslimshub.vercel.app/nashid" },
+        { label: "Rukaya", link: "https://muslimshub.vercel.app/rokayah" },
+        { label: "Islamic Q&A", link: "https://muslimshub.vercel.app/qa" },
+        { label: "Large Online Library", link: "https://muslimshub.vercel.app/library" },
+        { label: " Namaj & deeds Tracker", link: "https://muslimshub.vercel.app/tracker" },
+         { label: "Blog", link: "https://muslimshub.vercel.app/blogs" },
+          
 
       ],
     },
@@ -87,8 +87,8 @@ const Navbar = ({ setNavHeight, className }: { setNavHeight?: (height: number) =
     {
       label: "Resources",
       submenu: [
-        { label: "Contact Us", link: "/Contactus" },
-        { label: "About Us", link: "/about-us" },
+        { label: "Contact Us", link: "/contact" },
+        { label: "About Us", link: "/about" },
 
      
 

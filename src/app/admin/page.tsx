@@ -216,7 +216,7 @@ export default function AdminPage() {
 
 
   // Add this above your component
-  const imgbbAPIKey = '40e58544cb5b668e512765223d0f98eb'; // Replace with your real API key
+  const imgbbAPIKey = 'f7907af46aa2957d2f64c92fb55f3794'; // Replace with your real API key
 
   // Add this to state
   const [imageFile, setImageFile] = useState<File | null>(null);

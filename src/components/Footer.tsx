@@ -52,9 +52,9 @@ export default function Footer() {
                 <div>
                     <h2 className="text-xl font-bold mb-4">Useful Links</h2>
                     <ul className="space-y-2 text-gray-400">
-                        <li><a href="#" className="hover:text-blue-500 transition">Home</a></li>
-                        <li><a href="#" className="hover:text-blue-500 transition">About</a></li>
-                        <li><a href="#" className="hover:text-blue-500 transition">Education & Training</a></li>
+                        <li><a href="/contact" className="hover:text-blue-500 transition">Contact Us</a></li>
+                        <li><a href="/about" className="hover:text-blue-500 transition">About Us</a></li>
+                        <li><a href="https://muslimshub.vercel.app/quran" className="hover:text-blue-500 transition">Read The holy Quran</a></li>
                         <li><a href="/login" className="hover:text-blue-500 transition">login</a></li>
                     </ul>
                 </div>
