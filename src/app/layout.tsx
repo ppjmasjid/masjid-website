@@ -1,12 +1,9 @@
-"use client";
-
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useState } from "react";
+import LayoutWrapper from "@/components/LayoutWrapper"; // ⬅️ Client-side wrapper
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,25 +15,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
+export const metadata: Metadata = {
+  title: "Purbo Patuar Par Jame Masjid",
+  description:
+    "Purbo Patuar Par Jame Masjid - Your Community Hub for Islamic Faith and Services",
+  icons: {
+    icon: "/logo.png",     // located in /public
+    apple: "/logo.png",    // optional
+    shortcut: "/logo.png", // optional
+  },
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [navHeight, setNavHeight] = useState(0);
-
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          <Navbar setNavHeight={setNavHeight} />
-          <main style={{ paddingTop: `${navHeight}px` }} className="min-h-screen">
-            {children}
-          </main>
+          <LayoutWrapper>{children}</LayoutWrapper>
           <Footer />
         </AuthProvider>
       </body>
