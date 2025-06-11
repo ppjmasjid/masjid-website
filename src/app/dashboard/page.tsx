@@ -4,14 +4,14 @@ import { useEffect, useState, useRef } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/utils/firestore';
 import SpecialCollectionForm from '@/components/specialdonationdashboard';
+import * as XLSX from 'xlsx';
 
- 
 
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import MoneyUsageAnalysis  from '@/components/MoneyUsageAnalysis';
- 
+import MoneyUsageAnalysis from '@/components/MoneyUsageAnalysis';
+
 interface Provider {
   id: string;
   name: string;
@@ -48,8 +48,8 @@ export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState<'all' | string>('all');
   const [analyzeWholeYear, setAnalyzeWholeYear] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
-// 2 part 
-const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collection summary'>('regular');
+  // 2 part 
+  const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collection summary'>('regular');
 
 
   const fetchAllProviders = async () => {
@@ -130,9 +130,143 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
   ).map(([name, value]) => ({ name, value }));
 
 
+
+
+  //exlcel download function
+
+
+  // Helper to group by user
+  interface UserSummary {
+    name: string;
+    totalAmount: number;
+    monthsProvided: number;
+    entries: number;
+  }
+
+  interface RawDataItem {
+    no: number;
+    name: string;
+    amount: number;
+    subAdmin: string;
+    status: string;
+    date: string;
+    month: string;
+  }
+
+  interface SummaryAccumulator {
+    totalAmount: number;
+    months: Set<string>;
+    count: number;
+  }
+
+  const getUserSummary = (data: RawDataItem[]): UserSummary[] => {
+    const summary: Record<string, SummaryAccumulator> = {};
+
+    data.forEach((item) => {
+      const name = item.name;
+      if (!summary[name]) {
+        summary[name] = {
+          totalAmount: 0,
+          months: new Set<string>(),
+          count: 0,
+        };
+      }
+      summary[name].totalAmount += Number(item.amount);
+      summary[name].months.add(item.month);
+      summary[name].count += 1;
+    });
+
+    return Object.entries(summary).map(([name, value]) => ({
+      name,
+      totalAmount: value.totalAmount,
+      monthsProvided: value.months.size,
+      entries: value.count,
+    }));
+  };
+
+  const downloadExcelWithSummary = () => {
+    const headers = ['No', 'Name', 'Amount', 'Sub Admin', 'Status', 'Date', 'Month'];
+    const rawData = filteredProviders.map((p, i) => {
+      const [monthName, year] = p.monthKey?.match(/([A-Za-z]+)(\d{4})/)?.slice(1) || ['-', '-'];
+      return {
+        no: i + 1,
+        name: p.name,
+        amount: p.amount,
+        subAdmin: subAdmins[p.subAdminId] || p.subAdminId,
+        status: p.statusByMonth?.[p.monthKey]?.status || '-',
+        date: p.providedDate || '-',
+        month: `${monthName} ${year}`,
+      };
+    });
+
+    const dataSheet = [
+      headers,
+      ...rawData.map((item) => [
+        item.no,
+        item.name,
+        item.amount,
+        item.subAdmin,
+        item.status,
+        item.date,
+        item.month,
+      ]),
+    ];
+
+    const summaryData = getUserSummary(rawData);
+    const summarySheet = [
+      ['Name', 'Total Amount', 'Months Provided', 'Total Entries'],
+      ...summaryData.map((user) => [
+        user.name,
+        user.totalAmount,
+        user.monthsProvided,
+        user.entries,
+      ]),
+    ];
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+
+    // Add data sheet
+    const wsData = XLSX.utils.aoa_to_sheet(dataSheet);
+    XLSX.utils.book_append_sheet(wb, wsData, 'Donations');
+
+    // Add summary sheet
+    const wsSummary = XLSX.utils.aoa_to_sheet(summarySheet);
+
+    // Style summary header (manually)
+    const ref = wsSummary['!ref'] ?? '';
+    if (ref) {
+      const range = XLSX.utils.decode_range(ref);
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cell = wsSummary[XLSX.utils.encode_cell({ r: 0, c: C })];
+        if (cell) {
+          cell.s = {
+            font: { bold: true },
+            fill: {
+              fgColor: { rgb: 'FFFFAA00' },
+            },
+          };
+        }
+      }
+    }
+
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+    // Export
+    XLSX.writeFile(wb, 'donation_with_summary.xlsx');
+  };
+
+
+  // Function to download Excel finish 
+
+
+
+
+
+  //csv download function
   const downloadCSV = () => {
     const csvContent = [
-      ['Sr.', 'Name', 'Amount', 'Sub-Admin', 'Status', 'Provided Date'],
+      ['Sr.', 'Name', 'Amount', 'Sub-Admin', 'Status', 'Provided Date', 'Month'],
       ...filteredProviders.map((p, i) => {
         const monthInfo =
           selectedPeriod === 'all' || (analyzeWholeYear && /^\d{4}$/.test(selectedPeriod))
@@ -143,8 +277,9 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
           p.name,
           p.amount,
           subAdmins[p.subAdminId] || p.subAdminId,
-          monthInfo?.status || '-',
-          monthInfo?.providedDate || '-',
+          p.statusByMonth?.[p.monthKey]?.status || '-',
+          p.providedDate || '-',
+          p.monthKey || '-', // ⬅️ month
         ];
       }),
     ]
@@ -189,7 +324,7 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
           >
             <option value="regular">Regular Collection</option>
             <option value="special">Special Collection</option>
-            < option value="special collection summary">Special Collection Summary</option> 
+            < option value="special collection summary">Special Collection Summary</option>
           </select>
         </div>
 
@@ -198,9 +333,9 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
         {viewMode === 'special' && (
           <div className="bg-white shadow-md rounded-lg p-6 ">
             <h2 className="text-xl font-semibold text-purple-700 mb-4">✨ Special Collection Entry</h2>
-            <SpecialCollectionForm/>
-           
-           
+            <SpecialCollectionForm />
+
+
           </div>
         )}
 
@@ -208,162 +343,175 @@ const [viewMode, setViewMode] = useState<'regular' | 'special' | 'special collec
         {viewMode === 'special collection summary' && (
           <div className="bg-white shadow-md rounded-lg p-6">
             <h2 className="text-xl font-semibold text-purple-700 mb-4">✨ Special Collection Entry</h2>
-          
-           
+
+
             <MoneyUsageAnalysis />
           </div>
         )}
 
 
-    {/* Regular Collection View */}
-    {viewMode === 'regular' && (
-        <div className='text-gray-800'>
+        {/* Regular Collection View */}
+        {viewMode === 'regular' && (
+          <div className='text-gray-800'>
 
-          <div className="mb-6 w-full sm:w-64 text-gray-700">
-            <label className="block mb-1 text-sm font-medium text-gray-700">Select Period</label>
-            <select
-              className="w-full border rounded p-2"
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-            >
-              <option value="all">All Periods</option>
-              {generatePeriodOptions().map((period) => (
-                <option key={period} value={period}>{period}</option>
-              ))}
-              {[2024, 2025, 2026].map((year) => (
-                <option key={year} value={String(year)}>{year}</option>
-              ))}
-            </select>
-            <div className="mt-2 flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="analyzeYear"
-                checked={analyzeWholeYear}
-                onChange={() => setAnalyzeWholeYear(!analyzeWholeYear)}
-              />
-              <label htmlFor="analyzeYear" className="text-sm text-gray-700">Enable Full Year Analysis</label>
+            <div className="mb-6 w-full sm:w-64 text-gray-700">
+              <label className="block mb-1 text-sm font-medium text-gray-700">Select Period</label>
+              <select
+                className="w-full border rounded p-2"
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+              >
+                <option value="all">All Periods</option>
+                {generatePeriodOptions().map((period) => (
+                  <option key={period} value={period}>{period}</option>
+                ))}
+                {[2024, 2025, 2026].map((year) => (
+                  <option key={year} value={String(year)}>{year}</option>
+                ))}
+              </select>
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="analyzeYear"
+                  checked={analyzeWholeYear}
+                  onChange={() => setAnalyzeWholeYear(!analyzeWholeYear)}
+                />
+                <label htmlFor="analyzeYear" className="text-sm text-gray-700">Enable Full Year Analysis</label>
+              </div>
             </div>
-          </div>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-            <div className="bg-white p-4 rounded shadow text-center">
-              <h2 className="text-lg font-semibold">Total Providers</h2>
-              <p className="text-2xl text-blue-600">{totalProviders}</p>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+              <div className="bg-white p-4 rounded shadow text-center">
+                <h2 className="text-lg font-semibold">Total Providers</h2>
+                <p className="text-2xl text-blue-600">{totalProviders}</p>
+              </div>
+              <div className="bg-white p-4 rounded shadow text-center">
+                <h2 className="text-lg font-semibold">Total Amount</h2>
+                <p className="text-2xl text-green-600">৳ {totalAmount}</p>
+              </div>
+              <div className="bg-white p-4 rounded shadow text-center">
+                <h2 className="text-lg font-semibold">Highest Donation</h2>
+                <p className="text-2xl text-red-600">৳ {highest.amount}</p>
+                <p className="text-sm text-gray-500">{highest.name}</p>
+              </div>
+              <div className="bg-white p-4 rounded shadow text-center">
+                <h2 className="text-lg font-semibold">Sub-Admins</h2>
+                <p className="text-2xl text-purple-600">{subAdminCount}</p>
+              </div>
             </div>
-            <div className="bg-white p-4 rounded shadow text-center">
-              <h2 className="text-lg font-semibold">Total Amount</h2>
-              <p className="text-2xl text-green-600">৳ {totalAmount}</p>
+
+            {/* Bar Chart */}
+            <div className="bg-white p-6 rounded shadow mb-10">
+              <h2 className="text-xl font-semibold mb-4">📊 Donation per Sub-Admin</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={subAdminSummary}>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#00C49F" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div className="bg-white p-4 rounded shadow text-center">
-              <h2 className="text-lg font-semibold">Highest Donation</h2>
-              <p className="text-2xl text-red-600">৳ {highest.amount}</p>
-              <p className="text-sm text-gray-500">{highest.name}</p>
+
+            {/* Pie Chart */}
+            <div className="bg-white p-6 rounded shadow mb-10">
+              <h2 className="text-xl font-semibold mb-4">🥧 Sub-Admin Share (Pie Chart)</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    dataKey="value"
+                    data={subAdminSummary}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    fill="#8884d8"
+                    label
+                  >
+                    {subAdminSummary.map((_, i) => (
+                      <Cell key={`cell-${i}`} fill={pieColors[i % pieColors.length]} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-            <div className="bg-white p-4 rounded shadow text-center">
-              <h2 className="text-lg font-semibold">Sub-Admins</h2>
-              <p className="text-2xl text-purple-600">{subAdminCount}</p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-4 mb-6">
+              <button
+                onClick={downloadCSV}
+                className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
+              >
+                ⬇️ Download CSV
+              </button>
+              <button
+                onClick={handlePrint}
+                className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
+              >
+                🖨️ Print Dashboard
+              </button>
+              <button
+                onClick={downloadExcelWithSummary}
+                className="bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700"
+              >
+                Download Excel
+              </button>
+
             </div>
+
+            {/* Table */}
+            <div className="bg-white p-6 rounded shadow overflow-auto text-gray-800">
+              <h2 className="text-xl font-semibold mb-4">📄 All Money Providers</h2>
+              {filteredProviders.length === 0 ? (
+                <p className="text-gray-500">No data available.</p>
+              ) : (
+                <table className="w-full border text-left text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-2 border">Sr.</th>
+                      <th className="p-2 border">Name</th>
+                      <th className="p-2 border">Amount</th>
+                      <th className="p-2 border">Sub-Admin</th>
+                      <th className="p-2 border">Status</th>
+                      <th className="p-2 border">Provided Date</th>
+                      <th className="p-2 border">Month</th>
+
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProviders.map((p, i) => {
+                      const monthInfo =
+                        selectedPeriod === 'all' || (analyzeWholeYear && /^\d{4}$/.test(selectedPeriod))
+                          ? undefined
+                          : p.statusByMonth?.[selectedPeriod];
+                      return (
+                        <tr key={`${p.id}-${i}`} className="hover:bg-gray-50">
+                          <td className="p-2 border">{i + 1}</td>
+                          <td className="p-2 border">{p.name}</td>
+                          <td className="p-2 border">৳ {p.amount}</td>
+                          <td className="p-2 border">{subAdmins[p.subAdminId] || p.subAdminId}</td>
+                          <td className="p-2 border capitalize">{p.statusByMonth?.[p.monthKey]?.status || '-'}</td>
+
+                          <td className="p-2 border">{p.providedDate || '-'}</td>
+                          <td className="p-2 border">{p.monthKey}</td>
+
+
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+
+
           </div>
-
-          {/* Bar Chart */}
-          <div className="bg-white p-6 rounded shadow mb-10">
-            <h2 className="text-xl font-semibold mb-4">📊 Donation per Sub-Admin</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={subAdminSummary}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#00C49F" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Pie Chart */}
-          <div className="bg-white p-6 rounded shadow mb-10">
-            <h2 className="text-xl font-semibold mb-4">🥧 Sub-Admin Share (Pie Chart)</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  dataKey="value"
-                  data={subAdminSummary}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  fill="#8884d8"
-                  label
-                >
-                  {subAdminSummary.map((_, i) => (
-                    <Cell key={`cell-${i}`} fill={pieColors[i % pieColors.length]} />
-                  ))}
-                </Pie>
-                <Legend />
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-4 mb-6">
-            <button
-              onClick={downloadCSV}
-              className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-            >
-              ⬇️ Download CSV
-            </button>
-            <button
-              onClick={handlePrint}
-              className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
-            >
-              🖨️ Print Dashboard
-            </button>
-          </div>
-
-          {/* Table */}
-          <div className="bg-white p-6 rounded shadow overflow-auto text-gray-800">
-            <h2 className="text-xl font-semibold mb-4">📄 All Money Providers</h2>
-            {filteredProviders.length === 0 ? (
-              <p className="text-gray-500">No data available.</p>
-            ) : (
-              <table className="w-full border text-left text-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="p-2 border">Sr.</th>
-                    <th className="p-2 border">Name</th>
-                    <th className="p-2 border">Amount</th>
-                    <th className="p-2 border">Sub-Admin</th>
-                    <th className="p-2 border">Status</th>
-                    <th className="p-2 border">Provided Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProviders.map((p, i) => {
-                    const monthInfo =
-                      selectedPeriod === 'all' || (analyzeWholeYear && /^\d{4}$/.test(selectedPeriod))
-                        ? undefined
-                        : p.statusByMonth?.[selectedPeriod];
-                    return (
-                      <tr key={`${p.id}-${i}`} className="hover:bg-gray-50">
-                        <td className="p-2 border">{i + 1}</td>
-                        <td className="p-2 border">{p.name}</td>
-                        <td className="p-2 border">৳ {p.amount}</td>
-                        <td className="p-2 border">{subAdmins[p.subAdminId] || p.subAdminId}</td>
-                        <td className="p-2 border capitalize">{monthInfo?.status || '-'}</td>
-                        <td className="p-2 border">{monthInfo?.providedDate || '-'}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-
-
-        </div>
         )}
       </div>
-   
+
     </div>
   );
 }

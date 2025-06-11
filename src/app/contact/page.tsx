@@ -18,11 +18,11 @@ const ContactPage = () => {
 
       {/* Contact Form */}
       <form
-        action="https://formsubmit.co/m.b.siam2008@gmail.com"
+        action="https://formsubmit.co/ppjmasjid.bd@gmail.com"
         method="POST"
         className="max-w-2xl mx-auto space-y-6 bg-white text-gray-800 p-8 rounded-3xl shadow-2xl border border-green-300"
       >
-        <input type="hidden" name="_next" value="https://yourwebsite.com/thank-you" />
+        <input type="hidden" name="_next" value="https://ppjmasjid.vercel.app/thank-you" />
         <input type="hidden" name="_captcha" value="false" />
 
         <div>
