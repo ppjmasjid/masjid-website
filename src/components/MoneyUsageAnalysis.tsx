@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/utils/firestore';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 interface UsageRecord {
     category: string;
@@ -67,6 +69,76 @@ const MoneyUsageAnalysis = () => {
         ...usageRecords.map((rec) => rec.category)
     ]));
 
+    //export csv & excle  function
+    const downloadCSV = () => {
+    const data = usageRecords.map(record => ({
+        Category: record.category,
+        "Where Used": record.whereUsed,
+        Amount: record.amount,
+        Date: record.createdAt,
+        "Sub Admin": record.createdBy || 'Unknown',
+        "Image URL": record.imageUrl || 'N/A'
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Usage");
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, "usage_records.csv");
+};
+
+const downloadExcel = () => {
+    const wb = XLSX.utils.book_new();
+
+    // Summary Sheet
+    const summary = [
+        ["Total Balance", totalBalance],
+        ["Total Usage", totalUsage],
+        ["Remaining Balance", remainingBalance]
+    ];
+    const summarySheet = XLSX.utils.aoa_to_sheet(summary);
+    XLSX.utils.book_append_sheet(wb, summarySheet, "Summary");
+
+    // Category Sheet
+    const categoryData = allCategories.map(category => ({
+        Category: category,
+        Collected: balanceMap[category] || 0,
+        Used: getCategoryUsage(category),
+        Remaining: (balanceMap[category] || 0) - getCategoryUsage(category)
+    }));
+    const catSheet = XLSX.utils.json_to_sheet(categoryData);
+    XLSX.utils.book_append_sheet(wb, catSheet, "Categories");
+
+    // User-wise Analysis Sheet
+    const userMap: Record<string, number> = {};
+    usageRecords.forEach(rec => {
+        const user = rec.createdBy || 'Unknown';
+        userMap[user] = (userMap[user] || 0) + rec.amount;
+    });
+    const userSheet = XLSX.utils.json_to_sheet(
+        Object.entries(userMap).map(([user, total]) => ({ User: user, TotalUsed: total }))
+    );
+    XLSX.utils.book_append_sheet(wb, userSheet, "User Summary");
+
+    // Detailed Usage Sheet
+    const detailSheet = XLSX.utils.json_to_sheet(
+        usageRecords.map(rec => ({
+            Category: rec.category,
+            WhereUsed: rec.whereUsed,
+            Amount: rec.amount,
+            Date: rec.createdAt,
+            "Sub Admin": rec.createdBy || 'Unknown',
+            "Image URL": rec.imageUrl || 'N/A'
+        }))
+    );
+    XLSX.utils.book_append_sheet(wb, detailSheet, "Usage Detail");
+
+    // Save the workbook
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([wbout], { type: "application/octet-stream" }), "MoneyUsageReport.xlsx");
+};
+
+
     return (
         <div className="max-w-6xl mx-auto p-6">
             <h2 className="text-2xl font-bold mb-6 text-gray-500">Money Usage Analysis</h2>
@@ -90,6 +162,21 @@ const MoneyUsageAnalysis = () => {
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
+                <div className="flex gap-4 mb-6">
+    <button
+        onClick={downloadCSV}
+        className="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600 transition"
+    >
+        Download CSV
+    </button>
+    <button
+        onClick={downloadExcel}
+        className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700 transition"
+    >
+        Download Excel with Summary
+    </button>
+</div>
+
                 <h3 className="text-lg font-semibold mb-4 text-gray-700">Category-wise Summary</h3>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-gray-600">
