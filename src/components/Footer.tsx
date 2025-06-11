@@ -29,9 +29,9 @@ export default function Footer() {
                 {/* Left Column: Logo and Social Icons */}
                 <div>
                     {/* Logo */}
-                    <div className="flex items-center space-x-2">
-                        <img src="/logo.png" alt="Logo" className="w-8 h-8" />
-                        <h2 className="text-xl font-bold">পটুয়ার পার জামে মসজিদ</h2>
+                    <div className="flex items-center space-x-2 ">
+                        <img src="/logo.png" alt="Logo" className="w-20 h-20 rounded-full bg-white" />
+                        <h2 className="text-xl font-bold">পূর্ব পাটুয়ার পাড় জামে মসজিদ</h2>
                     </div>
 
                     {/* Social Icons */}

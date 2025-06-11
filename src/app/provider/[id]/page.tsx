@@ -127,9 +127,9 @@ const ProviderDetailsPage = () => {
   const headerComment = getHeaderComment(statusByMonth, selectedYear);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6   mx-auto bg-gradient-to-br from-emerald-100 to-white">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 bg-gradient-to-r from-pink-300 to-red-400 p-6 rounded-2xl shadow-2xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 bg-gradient-to-br from-emerald-100 to-white   p-6 rounded-2xl shadow-2xl">
         <div>
           <h1 className="text-3xl font-bold text-[#5c2121] mb-2">Provider: {name}</h1>
           <p className="text-lg text-gray-700">Year: {selectedYear}</p>
@@ -141,9 +141,9 @@ const ProviderDetailsPage = () => {
       </div>
 
       {/* Filters and Buttons */}
-      <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
+      <div className="flex flex-wrap justify-between items-center mb-4 gap-4 text-gray-800">
         <select
-          className="border px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring focus:ring-red-300"
+          className="border px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring focus:ring-red-300 texy-black"
           value={selectedYear}
           onChange={(e) => {
             setSelectedYear(e.target.value);
@@ -205,7 +205,7 @@ const ProviderDetailsPage = () => {
             return (
               <div
                 key={month}
-                className={`grid grid-cols-4 items-center px-4 py-3 border-b transition-all duration-300 color-gray-800 ${
+                className={`grid grid-cols-4 items-center px-4 py-3 border-b transition-all duration-300 text-gray-800 ${
                   isPaid ? 'bg-green-50 hover:bg-green-100' : 'bg-red-50 hover:bg-red-100'
                 }`}
               >

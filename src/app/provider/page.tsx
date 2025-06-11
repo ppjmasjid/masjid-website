@@ -67,7 +67,7 @@ const ProvidersPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-pink-100 to-pink-300">
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-green-100 to-green-300">
         <Loader2 className="animate-spin h-12 w-12 text-[#5c2121]" />
       </div>
     );
@@ -94,7 +94,7 @@ const ProvidersPage = () => {
   };
 
   return (
-    <div className="p-6 min-h-screen bg-gradient-to-br from-pink-50 to-pink-100">
+    <div className="p-6 min-h-screen   bg-gradient-to-br from-emerald-100 to-white ">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6">
         <h1 className="text-4xl font-extrabold text-[#5c2121] drop-shadow-lg mb-4 md:mb-0 animate-fade-in">
           📋 Providers List
@@ -105,11 +105,11 @@ const ProvidersPage = () => {
             placeholder="🔍 Search provider..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-4 py-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-400 transition w-64 text-gray-700"
+            className="px-4 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-400 transition w-64 text-gray-700"
           />
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg transition shadow-md"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition shadow-md"
           >
             <Download className="w-5 h-5" /> Export CSV
           </button>
@@ -118,8 +118,8 @@ const ProvidersPage = () => {
 
       {/* Table for Desktop */}
       <div className="hidden md:block overflow-x-auto rounded-lg shadow-xl animate-slide-up">
-        <table className="min-w-full bg-white border border-pink-300">
-          <thead className="bg-pink-200 text-[#5c2121] text-lg">
+        <table className="min-w-full bg-white border border-green-300">
+          <thead className="bg-green-500 text-[#5c2121] text-lg">
             <tr>
               <th className="p-4 border-b">Sr.</th>
               <th className="p-4 border-b">Provider Name</th>
@@ -136,13 +136,13 @@ const ProvidersPage = () => {
               return (
                 <tr
                   key={provider.id}
-                  className="hover:bg-pink-100 transition-all duration-300 text-center text-gray-700"
+                  className="hover:bg-green-100 transition-all duration-300 text-center text-gray-700"
                 >
                   <td className="p-4 border-b">{index + 1}</td>
-                  <td className="p-4 border-b font-semibold text-pink-700">
+                  <td className="p-4 border-b font-semibold text-green-700">
                     <Link
                       href={`/provider/${provider.id}`}
-                      className="hover:underline hover:text-pink-900 transition duration-200"
+                      className="hover:underline hover:text-green-900 transition duration-200"
                     >
                       {provider.name}
                     </Link>
@@ -180,9 +180,9 @@ const ProvidersPage = () => {
           return (
             <div
               key={provider.id}
-              className="bg-white p-4 rounded-lg shadow-lg border border-pink-200 transition-all hover:shadow-2xl"
+              className="bg-white p-4 rounded-lg shadow-lg border border-green-200 transition-all hover:shadow-2xl"
             >
-              <div className="font-bold text-pink-700 text-lg mb-2">
+              <div className="font-bold text-green-700 text-lg mb-2">
                 {index + 1}. {provider.name}
               </div>
               <div className="text-gray-600 text-sm mb-1">
@@ -196,7 +196,7 @@ const ProvidersPage = () => {
               </div>
               <Link
                 href={`/provider/${provider.id}`}
-                className="mt-2 inline-block text-sm text-pink-700 hover:text-pink-900 hover:underline"
+                className="mt-2 inline-block text-sm text-green-700 hover:text-green-900 hover:underline"
               >
                 View Details →
               </Link>

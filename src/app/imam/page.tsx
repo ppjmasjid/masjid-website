@@ -43,7 +43,7 @@ export default function ImamPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white text-green-900 font-serif">
-      <PageHeader location="contact" />
+      
       <div className="max-w-7xl mx-auto px-4 py-10">
         <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-center text-green-800 border-b-4 border-green-600 inline-block pb-2">
           Meet Our Imams
